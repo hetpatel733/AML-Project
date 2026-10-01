@@ -1,0 +1,422 @@
+{
+  "dataset_metadata": {
+    "total_samples": 1500,
+    "train_samples": 1050,
+    "val_samples": 225,
+    "test_samples": 225,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "random_state": 42,
+    "bow_vocabulary_size": 3703,
+    "tfidf_vocabulary_size": 3703
+  },
+  "models": {
+    "bow_lr": {
+      "id": "bow_lr",
+      "name": "BoW + Logistic Regression",
+      "description": "Bag-of-Words word occurrence representation paired with L2-regularized Logistic Regression.",
+      "feature_type": "bow",
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_lr": {
+      "id": "tfidf_lr",
+      "name": "TF-IDF + Logistic Regression",
+      "description": "Term Frequency-Inverse Document Frequency sublinear weighting with L2 Logistic Regression.",
+      "feature_type": "tfidf",
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_nb": {
+      "id": "tfidf_nb",
+      "name": "TF-IDF + Multinomial Naive Bayes",
+      "description": "Probabilistic generative classifier using Bayes theorem with Laplace smoothing (alpha=0.1).",
+      "feature_type": "tfidf",
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_svm": {
+      "id": "tfidf_svm",
+      "name": "TF-IDF + Linear SVM",
+      "description": "Maximum-margin hyperplane classifier (LinearSVC) calibrated with 3-fold sigmoid scaling.",
+      "feature_type": "tfidf",
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_rf": {
+      "id": "tfidf_rf",
+      "name": "TF-IDF + Random Forest",
+      "description": "Ensemble of 100 decorrelated decision trees with max depth 25 for non-linear boundary capture.",
+      "feature_type": "tfidf",
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_pac": {
+      "id": "tfidf_pac",
+      "name": "TF-IDF + Passive Aggressive Classifier",
+      "description": "Online margin-based incremental learning algorithm calibrated with 3-fold cross-validation.",
+      "feature_type": "tfidf",
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    }
+  },
+  "ensemble_weights": {
+    "raw_validation_f1": {
+      "bow_lr": 1.0,
+      "tfidf_lr": 1.0,
+      "tfidf_nb": 1.0,
+      "tfidf_svm": 1.0,
+      "tfidf_rf": 1.0,
+      "tfidf_pac": 1.0
+    },
+    "normalized_weights": {
+      "bow_lr": 0.1667,
+      "tfidf_lr": 0.1667,
+      "tfidf_nb": 0.1667,
+      "tfidf_svm": 0.1667,
+      "tfidf_rf": 0.1667,
+      "tfidf_pac": 0.1667
+    }
+  },
+  "ensembles": {
+    "validation_weighted": {
+      "name": "Validation-Weighted Soft Ensemble",
+      "description": "Weighted probability aggregation using validation F1 scores as weights: P_ens = sum(w_i * P_i) / sum(w_i).",
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      }
+    },
+    "majority_voting": {
+      "name": "Majority Voting Hard Ensemble",
+      "description": "Democratic consensus where each model casts one discrete prediction vote. Class with >= 50% votes wins.",
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      }
+    }
+  },
+  "champion_model": {
+    "id": "bow_lr",
+    "name": "BoW + Logistic Regression",
+    "val_f1": 1.0,
+    "test_metrics": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "roc_auc": 1.0,
+      "confusion_matrix": [
+        [
+          113,
+          0
+        ],
+        [
+          0,
+          112
+        ]
+      ]
+    }
+  },
+  "hyperparameters": {
+    "bow": {
+      "ngram_range": [
+        1,
+        2
+      ],
+      "max_features": 10000,
+      "min_df": 2,
+      "max_df": 0.85,
+      "strip_accents": "unicode"
+    },
+    "tfidf": {
+      "ngram_range": [
+        1,
+        2
+      ],
+      "max_features": 10000,
+      "min_df": 2,
+      "max_df": 0.85,
+      "sublinear_tf": true,
+      "strip_accents": "unicode"
+    },
+    "cv_folds": 5
+  }
+}

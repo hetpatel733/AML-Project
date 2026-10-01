@@ -1,0 +1,52 @@
+# Git
+.git
+.gitignore
+.github
+
+# Environment & Local Secrets
+.env
+.env.local
+.env.development
+.env.production
+*.env
+
+# Dependencies & Package Managers
+**/node_modules/
+node_modules/
+.npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python Environments & Cache
+**/.venv/
+.venv/
+**/venv/
+venv/
+**/__pycache__/
+__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# Frontend Build Output (will be built freshly in Docker builder stage)
+client/dist/
+dist/
+.vite/
+client/.vite/
+
+# IDE & OS Metadata
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tmp
+*.log
+
+# Large temporary datasets/checkpoints if any
+*.tar.gz
+*.zip

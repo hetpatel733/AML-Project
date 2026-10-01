@@ -1,0 +1,25 @@
+{
+  "name": "fake-news-detection",
+  "version": "1.0.0",
+  "description": "Full-Stack Fake News Detection using Machine Learning, Natural Language Processing, React, D3.js, Node.js, Express, and MongoDB",
+  "scripts": {
+    "server": "npm --prefix server start",
+    "server:dev": "npm --prefix server run dev",
+    "client": "npm --prefix client dev",
+    "client:build": "npm --prefix client build",
+    "docker:build": "docker build -t fake-news-detection .",
+    "docker:run": "docker run -d -p 5000:5000 -p 8000:8000 --name fake-news-app fake-news-detection",
+    "docker:compose": "docker compose up --build"
+  },
+  "keywords": [
+    "fake-news-detection",
+    "nlp",
+    "machine-learning",
+    "react",
+    "d3",
+    "express",
+    "mongodb"
+  ],
+  "author": "Academic Project Team",
+  "license": "ISC"
+}

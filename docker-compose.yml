@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: fake-news-detection:latest
+    container_name: fake-news-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"   # Frontend Web Interface & Express REST API
+      - "8000:8000"   # Python FastAPI NLP Inference Microservice
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGO_URI=mongodb://127.0.0.1:27017/fake_news_detection
+      - ML_SERVICE_URL=http://127.0.0.1:8000
+      - PYTHON_ML_URL=http://127.0.0.1:8000/predict
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5000/api/health && curl -f http://localhost:8000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  mongodb_data:
+    driver: local
