@@ -15,23 +15,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ConfidenceMeter from './ConfidenceMeter';
-import { formatDate, getPredictionColors } from '../utils/helpers';
-
-export const PredictionCard = ({ prediction, onReset, isMock = false }) => {
-  const [copied, setCopied] = useState(false);
-
-  if (!prediction) return null;
-
-  const isFake = String(prediction.prediction).toUpperCase() === 'FAKE';
-  const colorMeta = getPredictionColors(prediction.prediction);
-
-  const handleCopy = () => {
-    const textToCopy = `News Verification Result:
-Headline: "${prediction.title}"
-Classification: ${prediction.prediction}
-Confidence: ${(prediction.confidence * 100).toFixed(1)}%
-Model: ${prediction.model}
-Date: ${formatDate(prediction.createdAt || new Date())}`;
+import GeminiInsights from './GeminiInsights';
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
@@ -122,6 +106,11 @@ Date: ${formatDate(prediction.createdAt || new Date())}`;
             <span className="insight-tag"><CheckCircle2 size={12} /> Lemmatized Tokens</span>
           </div>
         </div>
+
+        {/* Gemini AI Insights Section */}
+        {prediction.geminiInsights && (
+          <GeminiInsights insights={prediction.geminiInsights} />
+        )}
 
         {/* Action Controls */}
         <div className="result-actions-footer">

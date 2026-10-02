@@ -31,6 +31,7 @@ export const createPrediction = async (req, res, next) => {
       confidence: mlResult.confidence,
       model: mlResult.model,
       explanation: mlResult.explanation || '',
+      geminiInsights: mlResult.geminiInsights || null,
       diagnostics: {
         wordCount: mlResult.wordCount,
         charCount: mlResult.charCount,
@@ -103,6 +104,7 @@ export const simulatePrediction = async (req, res, next) => {
         confidence: primary.confidence || 0.5,
         model: primary.decision_source || 'Validation-Weighted Soft Ensemble',
         explanation: primary.explanation || '',
+        geminiInsights: simResult.geminiInsights || null,
         diagnostics: simResult.input_summary?.diagnostics,
         simulationResults: simResult
       });

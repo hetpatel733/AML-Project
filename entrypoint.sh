@@ -8,26 +8,28 @@ echo "=========================================================="
 # Ensure MongoDB directories exist with correct permissions
 mkdir -p /data/db /data/log
 
-# 1. Start MongoDB daemon in background
+# 1. Start MongoDB daemon in background (non-blocking / tolerant)
 echo "📦 [1/3] Starting Embedded MongoDB Server..."
-mongod --dbpath /data/db --logpath /data/log/mongodb.log --fork --bind_ip 127.0.0.1 --logappend
-
-# Wait for MongoDB to become ready
-echo "⏳ Waiting for MongoDB on 127.0.0.1:27017..."
-max_mongo_attempts=30
-attempt=0
-while ! (python3 -c "import socket; s = socket.socket(); s.settimeout(1); s.connect(('127.0.0.1', 27017)); s.close()" 2>/dev/null); do
-  attempt=$((attempt+1))
-  if [ $attempt -ge $max_mongo_attempts ]; then
-    echo "❌ [Error] MongoDB failed to start within 30 seconds."
-    if [ -f /data/log/mongodb.log ]; then
-      tail -n 25 /data/log/mongodb.log
+MONGO_STARTED=false
+if mongod --dbpath /data/db --logpath /data/log/mongodb.log --fork --bind_ip 127.0.0.1 --logappend 2>/dev/null; then
+  echo "⏳ Waiting for MongoDB on 127.0.0.1:27017..."
+  max_mongo_attempts=15
+  attempt=0
+  while ! (python3 -c "import socket; s = socket.socket(); s.settimeout(1); s.connect(('127.0.0.1', 27017)); s.close()" 2>/dev/null); do
+    attempt=$((attempt+1))
+    if [ $attempt -ge $max_mongo_attempts ]; then
+      echo "⚠️ [Notice] MongoDB wait timed out, continuing with fallback..."
+      break
     fi
-    exit 1
+    sleep 1
+  done
+  if [ $attempt -lt $max_mongo_attempts ]; then
+    echo "✅ MongoDB is running and accepting connections."
+    MONGO_STARTED=true
   fi
-  sleep 1
-done
-echo "✅ MongoDB is running and accepting connections."
+else
+  echo "⚠️ [Notice] Embedded MongoDB failed to start (CPU AVX unsupported or permission constraint). Server will run with in-memory / local fallback."
+fi
 
 # 2. Start Python FastAPI NLP Microservice in background
 echo "🧠 [2/3] Starting Python FastAPI NLP Microservice (port 8000)..."
@@ -75,10 +77,12 @@ cleanup() {
     echo "Stopping Python ML Microservice (PID: $ML_PID)..."
     kill -TERM "$ML_PID" 2>/dev/null || true
   fi
-  
-  echo "Stopping MongoDB daemon..."
-  mongod --dbpath /data/db --shutdown 2>/dev/null || true
-  
+
+  if [ "$MONGO_STARTED" = true ]; then
+    echo "Stopping MongoDB daemon..."
+    mongod --dbpath /data/db --shutdown 2>/dev/null || true
+  fi
+
   wait "$NODE_PID" 2>/dev/null || true
   wait "$ML_PID" 2>/dev/null || true
   echo "🏁 All services stopped cleanly."

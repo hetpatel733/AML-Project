@@ -42,6 +42,10 @@ const predictionSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    geminiInsights: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null
+    },
     diagnostics: {
       type: mongoose.Schema.Types.Mixed,
       default: null

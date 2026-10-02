@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { runSimulation, submitPredictionFeedback } from '../services/api';
 import MultiModelComparisonChart from '../charts/MultiModelComparisonChart';
+import GeminiInsights from '../components/GeminiInsights';
 
 // Extended preset benchmark articles covering diverse journalistic and disinformation topologies
 const PRESET_ARTICLES = [
@@ -234,7 +235,8 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
     vectorizers,
     candidate_models,
     ensembles,
-    salient_features
+    salient_features,
+    geminiInsights: raw.geminiInsights || null
   };
 };
 
@@ -837,15 +839,58 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                 </div>
               </div>
 
-              <div className="stat-box" style={{ padding: '14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.06)', gridColumn: 'span 2' }}>
+              <div className="stat-box" style={{ padding: '14px', borderRadius: '8px', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
                 <div style={{ fontSize: '12px', color: '#94a3b8' }}>Heuristic Discourse Register</div>
                 <div style={{ fontSize: '14px', fontWeight: 600, color: simulationResult.article_analysis?.sentiment_heuristic?.includes('Sensationalist') ? '#f87171' : '#34d399', marginTop: '4px' }}>
                   {simulationResult.article_analysis?.sentiment_heuristic}
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                  Estimated average sentence length: {simulationResult.article_analysis?.avg_sentence_length} words
+                  Avg sentence: {simulationResult.article_analysis?.avg_sentence_length} words
                 </div>
               </div>
+
+              {/* Compact Highlighted Gemini Score / Status */}
+              {simulationResult.geminiInsights && (
+                <div className="stat-box" style={{
+                  padding: '14px',
+                  borderRadius: '8px',
+                  background: simulationResult.geminiInsights.enabled
+                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.15))'
+                    : 'rgba(15, 23, 42, 0.6)',
+                  border: simulationResult.geminiInsights.enabled
+                    ? '1.5px solid rgba(139, 92, 246, 0.6)'
+                    : '1px solid rgba(255, 255, 255, 0.06)',
+                  boxShadow: simulationResult.geminiInsights.enabled
+                    ? '0 0 15px rgba(139, 92, 246, 0.25)'
+                    : 'none'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#c084fc', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Sparkles size={13} /> Gemini AI Analysis
+                    </div>
+                    {simulationResult.geminiInsights.credibilityScore !== null && simulationResult.geminiInsights.credibilityScore !== undefined && (
+                      <span style={{
+                        fontSize: '10px',
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        fontWeight: 700,
+                        background: simulationResult.geminiInsights.credibilityScore >= 75 ? 'rgba(16, 185, 129, 0.2)' : simulationResult.geminiInsights.credibilityScore >= 50 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                        color: simulationResult.geminiInsights.credibilityScore >= 75 ? '#34d399' : simulationResult.geminiInsights.credibilityScore >= 50 ? '#fbbf24' : '#f87171'
+                      }}>
+                        Score: {simulationResult.geminiInsights.credibilityScore}/100
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {simulationResult.geminiInsights.enabled
+                      ? (simulationResult.geminiInsights.sentiment || simulationResult.geminiInsights.summary || 'Real-time AI Verification Complete')
+                      : (simulationResult.geminiInsights.message || 'Gemini API not configured')}
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px' }}>
+                    {simulationResult.geminiInsights.enabled ? 'Live multimodal fact-check' : 'Add GEMINI_API_KEY in .env'}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1345,11 +1390,50 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
             </div>
           )}
 
-          {/* STEP 8: Human-in-the-Loop Feedback & Calibration */}
+          {/* STEP 8: Real-Time Gemini AI Credibility & Fact-Check Analysis */}
+          {simulationResult.geminiInsights && (
+            <div className="card" style={{
+              marginBottom: '24px',
+              background: 'linear-gradient(135deg, rgba(26, 21, 53, 0.9), rgba(15, 23, 42, 0.9))',
+              border: '1.5px solid rgba(168, 85, 247, 0.45)',
+              boxShadow: '0 8px 25px rgba(168, 85, 247, 0.15)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                <span style={{
+                  background: 'linear-gradient(135deg, #a855f7, #6366f1)',
+                  color: '#fff',
+                  borderRadius: '50%',
+                  width: '26px',
+                  height: '26px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  boxShadow: '0 0 10px rgba(168, 85, 247, 0.5)'
+                }}>
+                  8
+                </span>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sparkles size={18} style={{ color: '#c084fc' }} />
+                    Gemini AI Real-Time Credibility Analysis
+                  </h3>
+                  <span style={{ fontSize: '12px', color: '#cbd5e1' }}>
+                    Google Gemini generative multimodal reasoning, claim verification, and factual anomaly detection.
+                  </span>
+                </div>
+              </div>
+
+              <GeminiInsights insights={simulationResult.geminiInsights} />
+            </div>
+          )}
+
+          {/* STEP 9: Human-in-the-Loop Feedback & Calibration */}
           <div className="card" style={{ marginBottom: '24px', background: 'rgba(20, 30, 51, 0.8)', border: '1px solid rgba(139, 92, 246, 0.35)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <span style={{ background: '#8b5cf6', color: '#fff', borderRadius: '50%', width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700 }}>
-                8
+                {simulationResult.geminiInsights ? '9' : '8'}
               </span>
               <div>
                 <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#f8fafc' }}>

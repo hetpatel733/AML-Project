@@ -23,8 +23,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:5000/api/health && curl -f http://localhost:8000/health || exit 1"]
       interval: 20s
       timeout: 5s
-      retries: 3
-      start_period: 30s
+      retries: 5
+      start_period: 40s
 
 volumes:
   mongodb_data:
