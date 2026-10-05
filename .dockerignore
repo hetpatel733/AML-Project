@@ -4,11 +4,9 @@
 .github
 
 # Environment & Local Secrets
-.env
 .env.local
 .env.development
 .env.production
-*.env
 
 # Dependencies & Package Managers
 **/node_modules/
