@@ -1,248 +1,529 @@
 {
-  "BoW + Logistic Regression": {
-    "accuracy": 1.0,
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1_score": 1.0,
-    "roc_auc": 1.0,
-    "confusion_matrix": {
-      "true_negative": 113,
-      "false_positive": 0,
-      "false_negative": 0,
-      "true_positive": 112,
-      "total_test_samples": 225
+  "dataset_metadata": {
+    "total_samples": 1500,
+    "train_samples": 1050,
+    "val_samples": 225,
+    "test_samples": 225,
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "random_state": 42,
+    "bow_vocabulary_size": 3703,
+    "tfidf_vocabulary_size": 3703
+  },
+  "experiment": {
+    "version": "v2",
+    "trained_at_utc": "2026-10-05T07:30:57.260745+00:00",
+    "dataset": "ISOT Fake and Real News files available in ml/data",
+    "external_validation": {
+      "status": "not_performed",
+      "dataset": null,
+      "reason": "No independent, compatible fake/real labeled dataset is included in the repository."
     },
-    "classification_report": {
-      "FAKE (0)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 113.0
+    "leakage_controls": [
+      "Stratified split before vectorizer fitting",
+      "Vectorizers fitted on training text only",
+      "Ensemble weights derived from validation F1 only",
+      "Final test set used only for evaluation"
+    ]
+  },
+  "data_quality": {
+    "source_rows": 1500,
+    "processed_rows": 1500,
+    "empty_clean_text_rows_removed": 0,
+    "duplicate_rows_removed": 0,
+    "missing_title_count": 0,
+    "missing_text_count": 0,
+    "class_distribution": {
+      "FAKE": 750,
+      "REAL": 750
+    }
+  },
+  "models": {
+    "bow_lr": {
+      "id": "bow_lr",
+      "name": "BoW + Logistic Regression",
+      "description": "Bag-of-Words word occurrence representation paired with L2-regularized Logistic Regression.",
+      "feature_type": "bow",
+      "selected_hyperparameters": {
+        "C": 0.5
       },
-      "REAL (1)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 112.0
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "cv_metrics": {
+        "accuracy_mean": 1.0,
+        "accuracy_std": 0.0,
+        "precision_mean": 1.0,
+        "precision_std": 0.0,
+        "recall_mean": 1.0,
+        "recall_std": 0.0,
+        "f1_mean": 1.0,
+        "f1_std": 0.0
       },
-      "accuracy": 1.0,
-      "macro avg": {
+      "val_metrics": {
+        "accuracy": 1.0,
         "precision": 1.0,
         "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
       },
-      "weighted avg": {
+      "test_metrics": {
+        "accuracy": 1.0,
         "precision": 1.0,
         "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_lr": {
+      "id": "tfidf_lr",
+      "name": "TF-IDF + Logistic Regression",
+      "description": "Term Frequency-Inverse Document Frequency sublinear weighting with L2 Logistic Regression.",
+      "feature_type": "tfidf",
+      "selected_hyperparameters": {
+        "C": 0.5
+      },
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "cv_metrics": {
+        "accuracy_mean": 1.0,
+        "accuracy_std": 0.0,
+        "precision_mean": 1.0,
+        "precision_std": 0.0,
+        "recall_mean": 1.0,
+        "recall_std": 0.0,
+        "f1_mean": 1.0,
+        "f1_std": 0.0
+      },
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_nb": {
+      "id": "tfidf_nb",
+      "name": "TF-IDF + Multinomial Naive Bayes",
+      "description": "Probabilistic generative classifier using Bayes theorem with Laplace smoothing (alpha=0.1).",
+      "feature_type": "tfidf",
+      "selected_hyperparameters": {
+        "alpha": 0.05
+      },
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "cv_metrics": {
+        "accuracy_mean": 1.0,
+        "accuracy_std": 0.0,
+        "precision_mean": 1.0,
+        "precision_std": 0.0,
+        "recall_mean": 1.0,
+        "recall_std": 0.0,
+        "f1_mean": 1.0,
+        "f1_std": 0.0
+      },
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_svm": {
+      "id": "tfidf_svm",
+      "name": "TF-IDF + Linear SVM",
+      "description": "Maximum-margin hyperplane classifier (LinearSVC) calibrated with 3-fold sigmoid scaling.",
+      "feature_type": "tfidf",
+      "selected_hyperparameters": {
+        "estimator__C": 0.5
+      },
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "cv_metrics": {
+        "accuracy_mean": 1.0,
+        "accuracy_std": 0.0,
+        "precision_mean": 1.0,
+        "precision_std": 0.0,
+        "recall_mean": 1.0,
+        "recall_std": 0.0,
+        "f1_mean": 1.0,
+        "f1_std": 0.0
+      },
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_rf": {
+      "id": "tfidf_rf",
+      "name": "TF-IDF + Random Forest",
+      "description": "Ensemble of 100 decorrelated decision trees with max depth 25 for non-linear boundary capture.",
+      "feature_type": "tfidf",
+      "selected_hyperparameters": {
+        "max_depth": null,
+        "n_estimators": 100
+      },
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "cv_metrics": {
+        "accuracy_mean": 1.0,
+        "accuracy_std": 0.0,
+        "precision_mean": 1.0,
+        "precision_std": 0.0,
+        "recall_mean": 1.0,
+        "recall_std": 0.0,
+        "f1_mean": 1.0,
+        "f1_std": 0.0
+      },
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    },
+    "tfidf_pac": {
+      "id": "tfidf_pac",
+      "name": "TF-IDF + Passive Aggressive Classifier",
+      "description": "Online margin-based incremental learning algorithm calibrated with 3-fold cross-validation.",
+      "feature_type": "tfidf",
+      "selected_hyperparameters": {
+        "estimator__C": 0.5
+      },
+      "cv_f1_mean": 1.0,
+      "cv_f1_std": 0.0,
+      "cv_metrics": {
+        "accuracy_mean": 1.0,
+        "accuracy_std": 0.0,
+        "precision_mean": 1.0,
+        "precision_std": 0.0,
+        "recall_mean": 1.0,
+        "recall_std": 0.0,
+        "f1_mean": 1.0,
+        "f1_std": 0.0
+      },
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      },
+      "validation_weight_raw": 1.0,
+      "ensemble_weight_normalized": 0.1667
+    }
+  },
+  "ensemble_weights": {
+    "raw_validation_f1": {
+      "bow_lr": 1.0,
+      "tfidf_lr": 1.0,
+      "tfidf_nb": 1.0,
+      "tfidf_svm": 1.0,
+      "tfidf_rf": 1.0,
+      "tfidf_pac": 1.0
+    },
+    "normalized_weights": {
+      "bow_lr": 0.1667,
+      "tfidf_lr": 0.1667,
+      "tfidf_nb": 0.1667,
+      "tfidf_svm": 0.1667,
+      "tfidf_rf": 0.1667,
+      "tfidf_pac": 0.1667
+    }
+  },
+  "ensembles": {
+    "validation_weighted": {
+      "name": "Validation-Weighted Soft Ensemble",
+      "description": "Weighted probability aggregation using validation F1 scores as weights: P_ens = sum(w_i * P_i) / sum(w_i).",
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
+      }
+    },
+    "majority_voting": {
+      "name": "Majority Voting Hard Ensemble",
+      "description": "Democratic consensus where each model casts one discrete prediction vote. Class with >= 50% votes wins.",
+      "val_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            112,
+            0
+          ],
+          [
+            0,
+            113
+          ]
+        ]
+      },
+      "test_metrics": {
+        "accuracy": 1.0,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "roc_auc": 1.0,
+        "confusion_matrix": [
+          [
+            113,
+            0
+          ],
+          [
+            0,
+            112
+          ]
+        ]
       }
     }
   },
-  "TF-IDF + Logistic Regression": {
-    "accuracy": 1.0,
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1_score": 1.0,
-    "roc_auc": 1.0,
-    "confusion_matrix": {
-      "true_negative": 113,
-      "false_positive": 0,
-      "false_negative": 0,
-      "true_positive": 112,
-      "total_test_samples": 225
-    },
-    "classification_report": {
-      "FAKE (0)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 113.0
-      },
-      "REAL (1)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 112.0
-      },
+  "champion_model": {
+    "id": "bow_lr",
+    "name": "BoW + Logistic Regression",
+    "val_f1": 1.0,
+    "test_metrics": {
       "accuracy": 1.0,
-      "macro avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      },
-      "weighted avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      }
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "roc_auc": 1.0,
+      "confusion_matrix": [
+        [
+          113,
+          0
+        ],
+        [
+          0,
+          112
+        ]
+      ]
     }
   },
-  "TF-IDF + Multinomial Naive Bayes": {
-    "accuracy": 1.0,
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1_score": 1.0,
-    "roc_auc": 1.0,
-    "confusion_matrix": {
-      "true_negative": 113,
-      "false_positive": 0,
-      "false_negative": 0,
-      "true_positive": 112,
-      "total_test_samples": 225
+  "hyperparameters": {
+    "bow": {
+      "ngram_range": [
+        1,
+        2
+      ],
+      "max_features": 10000,
+      "min_df": 2,
+      "max_df": 0.85,
+      "strip_accents": "unicode"
     },
-    "classification_report": {
-      "FAKE (0)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 113.0
-      },
-      "REAL (1)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 112.0
-      },
-      "accuracy": 1.0,
-      "macro avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      },
-      "weighted avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      }
-    }
-  },
-  "TF-IDF + Linear SVM": {
-    "accuracy": 1.0,
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1_score": 1.0,
-    "roc_auc": 1.0,
-    "confusion_matrix": {
-      "true_negative": 113,
-      "false_positive": 0,
-      "false_negative": 0,
-      "true_positive": 112,
-      "total_test_samples": 225
+    "tfidf": {
+      "ngram_range": [
+        1,
+        2
+      ],
+      "max_features": 10000,
+      "min_df": 2,
+      "max_df": 0.85,
+      "sublinear_tf": true,
+      "strip_accents": "unicode"
     },
-    "classification_report": {
-      "FAKE (0)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 113.0
-      },
-      "REAL (1)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 112.0
-      },
-      "accuracy": 1.0,
-      "macro avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      },
-      "weighted avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      }
-    }
-  },
-  "TF-IDF + Random Forest": {
-    "accuracy": 1.0,
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1_score": 1.0,
-    "roc_auc": 1.0,
-    "confusion_matrix": {
-      "true_negative": 113,
-      "false_positive": 0,
-      "false_negative": 0,
-      "true_positive": 112,
-      "total_test_samples": 225
-    },
-    "classification_report": {
-      "FAKE (0)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 113.0
-      },
-      "REAL (1)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 112.0
-      },
-      "accuracy": 1.0,
-      "macro avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      },
-      "weighted avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      }
-    }
-  },
-  "TF-IDF + Passive Aggressive": {
-    "accuracy": 1.0,
-    "precision": 1.0,
-    "recall": 1.0,
-    "f1_score": 1.0,
-    "roc_auc": 1.0,
-    "confusion_matrix": {
-      "true_negative": 113,
-      "false_positive": 0,
-      "false_negative": 0,
-      "true_positive": 112,
-      "total_test_samples": 225
-    },
-    "classification_report": {
-      "FAKE (0)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 113.0
-      },
-      "REAL (1)": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 112.0
-      },
-      "accuracy": 1.0,
-      "macro avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      },
-      "weighted avg": {
-        "precision": 1.0,
-        "recall": 1.0,
-        "f1-score": 1.0,
-        "support": 225.0
-      }
-    }
+    "cv_folds": 5
   }
 }

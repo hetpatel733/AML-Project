@@ -165,8 +165,8 @@ const DEFAULT_EXPERIMENT_METADATA = {
 };
 
 export const ExperimentAnalysis = () => {
-  const [metadata, setMetadata] = useState(DEFAULT_EXPERIMENT_METADATA);
-  const [loading, setLoading] = useState(false);
+  const [metadata, setMetadata] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [openFaq, setOpenFaq] = useState({});
 
   useEffect(() => {
@@ -184,6 +184,21 @@ export const ExperimentAnalysis = () => {
     };
     fetchMetadata();
   }, []);
+
+  if (loading) {
+    return <div className="page-container"><p className="text-muted">Loading experiment results...</p></div>;
+  }
+
+  if (!metadata) {
+    return (
+      <div className="page-container">
+        <div className="card">
+          <h2>Experiment results unavailable</h2>
+          <p className="text-muted">Run the ML training pipeline to generate an experiment artifact. No placeholder statistics are shown.</p>
+        </div>
+      </div>
+    );
+  }
 
   const toggleFaq = (index) => {
     setOpenFaq(prev => ({ ...prev, [index]: !prev[index] }));
@@ -262,7 +277,7 @@ export const ExperimentAnalysis = () => {
             <Layers size={16} className="text-primary" />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f8fafc' }}>
-            {(metadata?.dataset_metadata?.train_samples || metadata?.split_counts?.train)?.toLocaleString() || '31,428'} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
+            {(metadata.dataset_metadata?.train_samples ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
             Used for model training and feature extraction.
@@ -277,7 +292,7 @@ export const ExperimentAnalysis = () => {
             <Scale size={16} style={{ color: '#a78bfa' }} />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f8fafc' }}>
-            {(metadata?.dataset_metadata?.val_samples || metadata?.split_counts?.val)?.toLocaleString() || '6,735'} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
+            {(metadata.dataset_metadata?.val_samples ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
             Used for ensemble weighting and tuning.
@@ -292,11 +307,32 @@ export const ExperimentAnalysis = () => {
             <Award size={16} style={{ color: '#34d399' }} />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f8fafc' }}>
-            {(metadata?.dataset_metadata?.test_samples || metadata?.split_counts?.test)?.toLocaleString() || '6,735'} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
+            {(metadata.dataset_metadata?.test_samples ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
             Unbiased final empirical benchmark & ROC-AUC verification.
           </p>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: '28px', background: 'rgba(30, 41, 59, 0.7)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>Experiment Validity</h3>
+            <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: '13px' }}>
+              Version: {metadata.experiment?.version || 'Unversioned'} | Seed: {metadata.dataset_metadata?.random_state ?? 'N/A'} | Trained: {metadata.experiment?.trained_at_utc || 'N/A'}
+            </p>
+          </div>
+          <div style={{ minWidth: '280px' }}>
+            <strong style={{ color: '#fbbf24' }}>External validation: </strong>
+            <span style={{ color: '#cbd5e1' }}>{metadata.experiment?.external_validation?.status === 'not_performed' ? 'Not performed' : 'Available'}</span>
+            <p style={{ margin: '6px 0 0', color: '#94a3b8', fontSize: '12px' }}>
+              {metadata.experiment?.external_validation?.reason || 'No independent external result is reported.'}
+            </p>
+          </div>
+        </div>
+        <div style={{ marginTop: '16px', color: '#cbd5e1', fontSize: '13px' }}>
+          Records after preprocessing: {metadata.data_quality?.processed_rows ?? 'N/A'} | Duplicates removed: {metadata.data_quality?.duplicate_rows_removed ?? 'N/A'} | Missing titles: {metadata.data_quality?.missing_title_count ?? 'N/A'} | Missing text: {metadata.data_quality?.missing_text_count ?? 'N/A'}
         </div>
       </div>
 
@@ -365,8 +401,8 @@ export const ExperimentAnalysis = () => {
               })}
 
               {/* Ensemble Rows */}
-              {(metadata?.ensembles?.weighted_soft_ensemble || metadata?.ensembles?.weighted_soft) && (() => {
-                const softEns = metadata?.ensembles?.weighted_soft_ensemble || metadata?.ensembles?.weighted_soft;
+              {(metadata?.ensembles?.validation_weighted || metadata?.ensembles?.weighted_soft_ensemble) && (() => {
+                const softEns = metadata?.ensembles?.validation_weighted || metadata?.ensembles?.weighted_soft_ensemble;
                 return (
                   <tr style={{ background: 'rgba(139, 92, 246, 0.1)', borderTop: '2px solid rgba(139, 92, 246, 0.4)' }}>
                     <td style={{ padding: '12px 14px', fontWeight: 700, color: '#c4b5fd' }}>
@@ -379,19 +415,19 @@ export const ExperimentAnalysis = () => {
                       100.0% (&Sigma; w_i)
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#38bdf8', fontWeight: 700 }}>
-                      {((softEns.test_metrics?.accuracy || 0.991) * 100).toFixed(2)}%
+                      {((softEns.test_metrics?.accuracy ?? 0) * 100).toFixed(2)}%
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#34d399', fontWeight: 700 }}>
-                      {((softEns.test_metrics?.precision || 0.992) * 100).toFixed(2)}%
+                      {((softEns.test_metrics?.precision ?? 0) * 100).toFixed(2)}%
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#a78bfa', fontWeight: 700 }}>
-                      {((softEns.test_metrics?.recall || 0.990) * 100).toFixed(2)}%
+                      {((softEns.test_metrics?.recall ?? 0) * 100).toFixed(2)}%
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#f59e0b', fontWeight: 800 }}>
-                      {((softEns.test_metrics?.f1_score ?? softEns.test_metrics?.f1 ?? 0.991) * 100).toFixed(2)}%
+                      {((softEns.test_metrics?.f1_score ?? softEns.test_metrics?.f1 ?? 0) * 100).toFixed(2)}%
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#ec4899', fontWeight: 800 }}>
-                      {((softEns.test_metrics?.roc_auc || 0.999) * 100).toFixed(2)}%
+                      {((softEns.test_metrics?.roc_auc ?? 0) * 100).toFixed(2)}%
                     </td>
                   </tr>
                 );
@@ -411,19 +447,19 @@ export const ExperimentAnalysis = () => {
                       Unweighted
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#38bdf8', fontWeight: 700 }}>
-                      {((hardEns.test_metrics?.accuracy || 0.989) * 100).toFixed(2)}%
+                      {((hardEns.test_metrics?.accuracy ?? 0) * 100).toFixed(2)}%
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#34d399', fontWeight: 700 }}>
-                      {((hardEns.test_metrics?.precision || 0.988) * 100).toFixed(2)}%
+                      {((hardEns.test_metrics?.precision ?? 0) * 100).toFixed(2)}%
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#a78bfa', fontWeight: 700 }}>
-                      {((hardEns.test_metrics?.recall || 0.990) * 100).toFixed(2)}%
+                      {((hardEns.test_metrics?.recall ?? 0) * 100).toFixed(2)}%
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#f59e0b', fontWeight: 800 }}>
-                      {((hardEns.test_metrics?.f1_score ?? hardEns.test_metrics?.f1 ?? 0.989) * 100).toFixed(2)}%
+                      {((hardEns.test_metrics?.f1_score ?? hardEns.test_metrics?.f1 ?? 0) * 100).toFixed(2)}%
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#ec4899', fontWeight: 800 }}>
-                      {((hardEns.test_metrics?.roc_auc || 0.998) * 100).toFixed(2)}%
+                      {((hardEns.test_metrics?.roc_auc ?? 0) * 100).toFixed(2)}%
                     </td>
                   </tr>
                 );

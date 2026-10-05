@@ -22,8 +22,8 @@ The system is organized into decoupled micro-layers:
                             │ HTTP POST (Port 8000)
                             ▼
 ┌────────────────────────────────────────────────────────┐
-│             Python FastAPI / Flask ML Service          │
-│   (TF-IDF Vectorizer + Passive Aggressive Classifier)  │
+│                 Python FastAPI ML Service              │
+│ (Six trained NLP models + calibrated ensemble service) │
 └────────────────────────────────────────────────────────┘
 ```
 
@@ -44,7 +44,7 @@ fake-news-detection/
 │   │   │   └── ConfusionMatrix.jsx     # TP, FP, TN, FN Error Matrix
 │   │   ├── components/         # Reusable UI Blocks (Navbar, Footer, StatCard, Badge, etc.)
 │   │   ├── pages/              # Home, Dashboard, Predict, Analytics, History, About, NotFound
-│   │   ├── services/api.js     # Axios API Client with Resilient Fallback Layer
+│   │   ├── services/api.js     # Axios API Client
 │   │   ├── utils/helpers.js    # Formatting, Confidence Helpers, Color Themes
 │   │   ├── App.jsx             # Router Setup & Navigation Container
 │   │   ├── index.css           # Modern Academic Dark/Light Theme System
@@ -57,7 +57,7 @@ fake-news-detection/
 │   │   └── db.js               # MongoDB Mongoose Connection with Resilient Retry
 │   ├── controllers/
 │   │   ├── predictionController.js # Predict, History, Pagination, Filter, Search, Delete
-│   │   └── analyticsController.js  # Aggregation, Metrics, Distribution, Model Benchmarks
+│   │   └── analyticsController.js  # Aggregation and artifact-backed experiment metrics
 │   ├── middleware/
 │   │   ├── errorMiddleware.js      # Centralized Error & 404 Handlers
 │   │   └── validationMiddleware.js # Input & Query Sanitization and Schema Validation
@@ -67,7 +67,7 @@ fake-news-detection/
 │   │   ├── predictionRoutes.js # /api/predictions & /api/predictions/stats
 │   │   └── analyticsRoutes.js  # /api/analytics & /api/analytics/performance
 │   ├── services/
-│   │   └── mlService.js        # Axios Client for Python ML Microservice (with dev fallback)
+│   │   └── mlService.js        # Axios Client for Python ML Microservice
 │   ├── utils/
 │   │   └── response.js         # Standardized JSON Response Formatter
 │   ├── .env.example            # Environment Variable Template
@@ -124,7 +124,7 @@ docker compose up --build -d
 - **Node.js**: v18.0.0 or higher
 - **npm**: v9.0.0 or higher
 - **MongoDB**: Local MongoDB community service (`mongodb://127.0.0.1:27017`) or MongoDB Atlas URI (Optional for initial development)
-- **Python**: 3.9+ (Optional, only needed when running the future Python ML model microservice)
+- **Python**: 3.9+ for local ML training and FastAPI inference
 
 ---
 
@@ -175,6 +175,57 @@ docker compose up --build -d
 
 ---
 
+## 🧪 Experimental Methodology
+
+The website reports the saved ML experiment artifact rather than manually written benchmark values. The source of truth is generated at:
+
+- `ml/models/model_config.json`
+- `ml/results/metrics.json`
+- `ml/results/metrics_comparison.csv`
+
+### Dataset currently available
+
+The repository currently contains `ml/data/Fake.csv` with 750 records and `ml/data/True.csv` with 750 records. After preprocessing, the current experiment contains 1,500 valid records: 750 `FAKE` and 750 `REAL`. The preprocessing pipeline checks missing values, empty text, duplicates, cleaned text, labels, and class distribution. A larger original ISOT distribution is not included locally, so the application does not claim to have evaluated records that are absent from the repository.
+
+### Leakage-controlled split
+
+The experiment uses a fixed random seed (`42`) and a stratified 70/15/15 split:
+
+| Partition | Records | Purpose |
+|---|---:|---|
+| Training | 1,050 | Model fitting, vectorizer fitting, and training-only tuning |
+| Validation | 225 | Ensemble weighting and validation checks |
+| Final test | 225 | One-time internal evaluation |
+
+CountVectorizer and TfidfVectorizer are fitted only on training text. The final test set is not used for hyperparameter selection or ensemble weighting.
+
+### Models and evaluation
+
+The experiment retains six models: BoW + Logistic Regression, TF-IDF + Logistic Regression, TF-IDF + Multinomial Naive Bayes, TF-IDF + calibrated Linear SVM, TF-IDF + Random Forest, and TF-IDF + calibrated Passive Aggressive. Each model uses training-only `GridSearchCV` followed by 5-fold stratified cross-validation on the training partition. The artifact stores CV mean/std for Accuracy, Precision, Recall, and F1, plus validation and final-test Accuracy, Precision, Recall, F1, ROC-AUC, and confusion matrices.
+
+The two ensembles are also retained: majority voting and validation-F1 weighted probability voting. Ensemble weights are calculated from validation F1 only.
+
+### Current result and limitations
+
+The regenerated experiment still records perfect internal scores on this available corpus. These values are not lowered or replaced with invented values. They should be interpreted cautiously because source, topic, and writing-style artifacts may make the classes unusually separable. Prediction confidence is not the same as accuracy for an individual article.
+
+External validation is currently **not performed**. No compatible independent fake/real labeled dataset is included in the repository, so the application does not fabricate external metrics or a generalization gap. Add and document an independent dataset before publishing external performance claims.
+
+Experiment metadata records version `v2`, the UTC training timestamp, dataset counts, selected hyperparameters, data-quality counts, and leakage controls.
+
+### Re-running the experiment
+
+From the repository root:
+
+```bash
+cd ml
+python -m src.train
+```
+
+This retrains all six models and regenerates vectorizers, model artifacts, split arrays, metadata, metrics JSON, and the comparison CSV. The backend and frontend read the resulting metadata dynamically.
+
+---
+
 ## 📡 REST API Documentation
 
 ### Base URL: `http://localhost:5000/api`
@@ -187,8 +238,8 @@ docker compose up --build -d
 | `GET` | `/predictions/stats` | Retrieve overview statistics for dashboard scorecards |
 | `GET` | `/predictions/:id` | Get single prediction record by ID |
 | `DELETE` | `/predictions/:id` | Delete prediction record by ID |
-| `GET` | `/analytics` | Aggregate stats, daily volume trends, confidence spread, confusion matrix |
-| `GET` | `/model-performance` | Evaluation benchmark metrics across NLP classifiers |
+| `GET` | `/analytics` | Prediction aggregates plus artifact-backed model metrics and confusion matrix |
+| `GET` | `/model-performance` | Artifact-backed test metrics, CV metrics, and external-validation fields |
 
 ---
 
@@ -260,4 +311,4 @@ The Express server dispatches news payload to the Python ML microservice via HTT
 }
 ```
 
-*(If the Python service is offline during testing, Express uses a heuristic NLP analysis fallback seamlessly).*
+The system predicts patterns learned from labeled datasets; it does not independently verify whether an article is factually true. If the ML service or experiment artifact is unavailable, the UI reports unavailable statistics instead of substituting invented benchmark values.

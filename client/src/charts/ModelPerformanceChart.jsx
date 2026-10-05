@@ -30,13 +30,7 @@ export const ModelPerformanceChart = ({ data = [], height = 340 }) => {
       .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-    const chartData = (data && data.length > 0) ? data : [
-      { model: 'Passive Aggressive', accuracy: 0.948, precision: 0.952, recall: 0.941, f1Score: 0.946 },
-      { model: 'Logistic Regression', accuracy: 0.936, precision: 0.931, recall: 0.942, f1Score: 0.936 },
-      { model: 'Linear SVM', accuracy: 0.941, precision: 0.945, recall: 0.935, f1Score: 0.940 },
-      { model: 'Multinomial NB', accuracy: 0.894, precision: 0.887, recall: 0.902, f1Score: 0.894 },
-      { model: 'Random Forest', accuracy: 0.912, precision: 0.920, recall: 0.901, f1Score: 0.910 }
-    ];
+    const chartData = data || [];
 
     // Main X scale (models)
     const x0 = d3.scaleBand()
@@ -155,6 +149,7 @@ export const ModelPerformanceChart = ({ data = [], height = 340 }) => {
     <div className="d3-chart-container" ref={containerRef} style={{ position: 'relative', width: '100%' }}>
       <svg ref={svgRef} className="d3-svg-responsive" />
       <div ref={tooltipRef} className="d3-floating-tooltip" style={{ opacity: 0 }} />
+      {!data?.length && <p className="text-muted">Experiment benchmark data is unavailable.</p>}
 
       {/* Legend */}
       <div className="d3-chart-legend">

@@ -110,6 +110,8 @@ def load_raw_datasets(fake_path=FAKE_CSV_PATH, true_path=TRUE_CSV_PATH) -> pd.Da
     # Combine datasets
     combined_df = pd.concat([fake_df, true_df], ignore_index=True)
     initial_count = len(combined_df)
+    missing_title_count = int(combined_df["title"].isna().sum())
+    missing_text_count = int(combined_df["text"].isna().sum())
 
     # Drop nulls in core text columns
     combined_df["title"] = combined_df["title"].fillna("")
@@ -122,8 +124,13 @@ def load_raw_datasets(fake_path=FAKE_CSV_PATH, true_path=TRUE_CSV_PATH) -> pd.Da
     combined_df = combined_df[combined_df["combined_text"].str.strip() != ""]
 
     # Drop duplicate combined articles
+    before_deduplication = len(combined_df)
     combined_df = combined_df.drop_duplicates(subset=["combined_text"]).reset_index(drop=True)
     deduped_count = len(combined_df)
+    combined_df.attrs["source_rows"] = initial_count
+    combined_df.attrs["duplicate_rows_removed"] = before_deduplication - deduped_count
+    combined_df.attrs["missing_title_count"] = missing_title_count
+    combined_df.attrs["missing_text_count"] = missing_text_count
 
     print(f"[Data Loader] Loaded {initial_count} total articles. After deduplication & null cleaning: {deduped_count} articles.")
     print(f"[Data Loader] Class Distribution:\n{combined_df['label_name'].value_counts()}")
@@ -150,7 +157,9 @@ def prepare_and_split_data(
     df["clean_text"] = df["combined_text"].apply(clean_text)
 
     # Filter out any samples that became empty after cleaning
+    before_clean_filter = len(df)
     df = df[df["clean_text"].str.strip() != ""].reset_index(drop=True)
+    df.attrs["empty_clean_text_rows_removed"] = before_clean_filter - len(df)
 
     X = df["clean_text"].values
     y = df["label"].values
@@ -191,7 +200,9 @@ def prepare_and_split_data_3way(
     df["clean_text"] = df["combined_text"].apply(clean_text)
 
     # Filter out any samples that became empty after cleaning
+    before_clean_filter = len(df)
     df = df[df["clean_text"].str.strip() != ""].reset_index(drop=True)
+    df.attrs["empty_clean_text_rows_removed"] = before_clean_filter - len(df)
 
     X = df["clean_text"].values
     y = df["label"].values

@@ -164,13 +164,7 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
       },
       val_weight: m.val_weight ?? 0.166,
       inference_time_ms: m.inference_time_ms ?? Number((1.1 + Math.random() * 0.8).toFixed(2)),
-      test_dataset_metrics: m.test_dataset_metrics || {
-        accuracy: 0.985,
-        precision: 0.984,
-        recall: 0.986,
-        f1: 0.985,
-        roc_auc: 0.998
-      }
+      test_dataset_metrics: m.test_dataset_metrics || null
     };
   });
 
@@ -202,7 +196,7 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
       },
       confidence: Number(softConf.toFixed(4)),
       consensus_strength: consensusLabel,
-      test_dataset_metrics: rawSoft.test_dataset_metrics || { accuracy: 0.991, precision: 0.992, recall: 0.990, f1: 0.991, roc_auc: 0.999 }
+      test_dataset_metrics: rawSoft.test_dataset_metrics || null
     },
     majority_voting_hard_ensemble: {
       name: rawHard.name || 'Majority Voting',
@@ -212,7 +206,7 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
       fake_votes: fakeVotes,
       vote_percentage: votePercentage,
       confidence: rawHard.confidence ?? Number((votePercentage / 100).toFixed(4)),
-      test_dataset_metrics: rawHard.test_dataset_metrics || { accuracy: 0.989, precision: 0.988, recall: 0.990, f1: 0.989, roc_auc: 0.998 }
+      test_dataset_metrics: rawHard.test_dataset_metrics || null
     }
   };
 
@@ -1154,24 +1148,24 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                     }}>
                       <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
                         <span>Hold-Out Test Split Metrics (15%):</span>
-                        <span style={{ color: '#60a5fa' }}>ROC-AUC: {((model.test_dataset_metrics?.roc_auc || 0.99) * 100).toFixed(1)}%</span>
+                          <span style={{ color: '#60a5fa' }}>ROC-AUC: {model.test_dataset_metrics ? `${(model.test_dataset_metrics.roc_auc * 100).toFixed(1)}%` : 'N/A'}</span>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', textAlign: 'center' }}>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '5px', borderRadius: '4px' }}>
                           <span style={{ display: 'block', color: '#64748b' }}>Acc</span>
-                          <strong style={{ color: '#f8fafc' }}>{((model.test_dataset_metrics?.accuracy || 0) * 100).toFixed(1)}%</strong>
+                          <strong style={{ color: '#f8fafc' }}>{model.test_dataset_metrics ? `${(model.test_dataset_metrics.accuracy * 100).toFixed(1)}%` : 'N/A'}</strong>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '5px', borderRadius: '4px' }}>
                           <span style={{ display: 'block', color: '#64748b' }}>Prec</span>
-                          <strong style={{ color: '#f8fafc' }}>{((model.test_dataset_metrics?.precision || 0) * 100).toFixed(1)}%</strong>
+                          <strong style={{ color: '#f8fafc' }}>{model.test_dataset_metrics ? `${(model.test_dataset_metrics.precision * 100).toFixed(1)}%` : 'N/A'}</strong>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '5px', borderRadius: '4px' }}>
                           <span style={{ display: 'block', color: '#64748b' }}>Rec</span>
-                          <strong style={{ color: '#f8fafc' }}>{((model.test_dataset_metrics?.recall || 0) * 100).toFixed(1)}%</strong>
+                          <strong style={{ color: '#f8fafc' }}>{model.test_dataset_metrics ? `${(model.test_dataset_metrics.recall * 100).toFixed(1)}%` : 'N/A'}</strong>
                         </div>
                         <div style={{ background: 'rgba(255,255,255,0.03)', padding: '5px', borderRadius: '4px' }}>
                           <span style={{ display: 'block', color: '#64748b' }}>F1</span>
-                          <strong style={{ color: '#f8fafc' }}>{((model.test_dataset_metrics?.f1 || 0) * 100).toFixed(1)}%</strong>
+                          <strong style={{ color: '#f8fafc' }}>{model.test_dataset_metrics ? `${(model.test_dataset_metrics.f1 * 100).toFixed(1)}%` : 'N/A'}</strong>
                         </div>
                       </div>
                     </div>
@@ -1252,7 +1246,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                   </div>
 
                   <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                    Test Dataset F1 Benchmark: <strong style={{ color: '#34d399' }}>{((simulationResult.ensembles.weighted_soft_ensemble.test_dataset_metrics?.f1 || 0.991) * 100).toFixed(1)}%</strong> | ROC-AUC: <strong style={{ color: '#34d399' }}>{((simulationResult.ensembles.weighted_soft_ensemble.test_dataset_metrics?.roc_auc || 0.999) * 100).toFixed(1)}%</strong>
+                    Internal Test F1: <strong style={{ color: '#34d399' }}>{simulationResult.ensembles.weighted_soft_ensemble.test_dataset_metrics ? `${(simulationResult.ensembles.weighted_soft_ensemble.test_dataset_metrics.f1 * 100).toFixed(1)}%` : 'N/A'}</strong> | ROC-AUC: <strong style={{ color: '#34d399' }}>{simulationResult.ensembles.weighted_soft_ensemble.test_dataset_metrics ? `${(simulationResult.ensembles.weighted_soft_ensemble.test_dataset_metrics.roc_auc * 100).toFixed(1)}%` : 'N/A'}</strong>
                   </div>
                 </div>
               )}
@@ -1311,7 +1305,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                   </div>
 
                   <div style={{ fontSize: '11px', color: '#94a3b8' }}>
-                    Test Dataset F1 Benchmark: <strong style={{ color: '#34d399' }}>{((simulationResult.ensembles.majority_voting_hard_ensemble.test_dataset_metrics?.f1 || 0.989) * 100).toFixed(1)}%</strong> | ROC-AUC: <strong style={{ color: '#34d399' }}>{((simulationResult.ensembles.majority_voting_hard_ensemble.test_dataset_metrics?.roc_auc || 0.998) * 100).toFixed(1)}%</strong>
+                    Internal Test F1: <strong style={{ color: '#34d399' }}>{simulationResult.ensembles.majority_voting_hard_ensemble.test_dataset_metrics ? `${(simulationResult.ensembles.majority_voting_hard_ensemble.test_dataset_metrics.f1 * 100).toFixed(1)}%` : 'N/A'}</strong> | ROC-AUC: <strong style={{ color: '#34d399' }}>{simulationResult.ensembles.majority_voting_hard_ensemble.test_dataset_metrics ? `${(simulationResult.ensembles.majority_voting_hard_ensemble.test_dataset_metrics.roc_auc * 100).toFixed(1)}%` : 'N/A'}</strong>
                   </div>
                 </div>
               )}

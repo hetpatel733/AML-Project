@@ -2,6 +2,7 @@ import json
 import joblib
 import numpy as np
 import pandas as pd
+from datetime import datetime, timezone
 from pathlib import Path
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.linear_model import LogisticRegression, PassiveAggressiveClassifier
@@ -9,7 +10,7 @@ from sklearn.naive_bayes import MultinomialNB
 from sklearn.svm import LinearSVC
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_validate
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix, classification_report
 
 import sys
@@ -99,6 +100,7 @@ def train_models():
             "description": "Bag-of-Words word occurrence representation paired with L2-regularized Logistic Regression.",
             "feature_type": "bow",
             "clf": LogisticRegression(C=1.0, max_iter=1000, random_state=RANDOM_STATE),
+            "param_grid": {"C": [0.5, 1.0, 2.0]},
             "path": BOW_LOGISTIC_REGRESSION_PATH
         },
         {
@@ -107,6 +109,7 @@ def train_models():
             "description": "Term Frequency-Inverse Document Frequency sublinear weighting with L2 Logistic Regression.",
             "feature_type": "tfidf",
             "clf": LogisticRegression(C=1.0, max_iter=1000, random_state=RANDOM_STATE),
+            "param_grid": {"C": [0.5, 1.0, 2.0]},
             "path": LOGISTIC_REGRESSION_PATH
         },
         {
@@ -115,6 +118,7 @@ def train_models():
             "description": "Probabilistic generative classifier using Bayes theorem with Laplace smoothing (alpha=0.1).",
             "feature_type": "tfidf",
             "clf": MultinomialNB(alpha=0.1),
+            "param_grid": {"alpha": [0.05, 0.1, 0.5]},
             "path": NAIVE_BAYES_PATH
         },
         {
@@ -126,6 +130,7 @@ def train_models():
                 estimator=LinearSVC(C=1.0, max_iter=2000, random_state=RANDOM_STATE),
                 cv=3
             ),
+            "param_grid": {"estimator__C": [0.5, 1.0, 2.0]},
             "path": SVM_PATH
         },
         {
@@ -139,6 +144,7 @@ def train_models():
                 random_state=RANDOM_STATE,
                 n_jobs=-1
             ),
+            "param_grid": {"n_estimators": [100, 200], "max_depth": [None, 25]},
             "path": RANDOM_FOREST_PATH
         },
         {
@@ -150,6 +156,7 @@ def train_models():
                 estimator=PassiveAggressiveClassifier(C=1.0, max_iter=1000, random_state=RANDOM_STATE),
                 cv=3
             ),
+            "param_grid": {"estimator__C": [0.5, 1.0, 2.0]},
             "path": PASSIVE_AGGRESSIVE_PATH
         }
     ]
@@ -179,11 +186,45 @@ def train_models():
         X_v = X_val_bow if feature_type == "bow" else X_val_tfidf
         X_te = X_test_bow if feature_type == "bow" else X_test_tfidf
 
+        print("  [Tuning] Selecting hyperparameters using training data only...")
+        tuner = GridSearchCV(
+            estimator=clf,
+            param_grid=m["param_grid"],
+            scoring="f1",
+            cv=cv,
+            n_jobs=-1,
+            refit=True,
+            error_score="raise"
+        )
+        clf = tuner.fit(X_tr, y_train).best_estimator_
+        print(f"  [Tuning] Best parameters: {tuner.best_params_}")
+
         # 5-Fold Stratified Cross-Validation on Training Data
         print(f"  [CV] Running {CV_FOLDS}-fold stratified cross-validation...")
-        cv_scores = cross_val_score(clf, X_tr, y_train, cv=cv, scoring="f1", n_jobs=-1)
-        cv_mean_f1 = float(np.mean(cv_scores))
-        cv_std_f1 = float(np.std(cv_scores))
+        cv_scores = cross_validate(
+            clf,
+            X_tr,
+            y_train,
+            cv=cv,
+            scoring={
+                "accuracy": "accuracy",
+                "precision": "precision",
+                "recall": "recall",
+                "f1": "f1",
+            },
+            n_jobs=-1,
+            error_score="raise"
+        )
+        cv_metrics = {
+            metric: {
+                "mean": round(float(np.mean(cv_scores[f"test_{metric}"])), 4),
+                "std": round(float(np.std(cv_scores[f"test_{metric}"])), 4),
+                "folds": [round(float(score), 4) for score in cv_scores[f"test_{metric}"]]
+            }
+            for metric in ["accuracy", "precision", "recall", "f1"]
+        }
+        cv_mean_f1 = cv_metrics["f1"]["mean"]
+        cv_std_f1 = cv_metrics["f1"]["std"]
         print(f"  [CV] 5-Fold Mean F1: {cv_mean_f1 * 100:.2f}% (+/- {cv_std_f1 * 100:.2f}%)")
 
         # Fit on full training set
@@ -240,8 +281,19 @@ def train_models():
             "name": m_name,
             "description": m["description"],
             "feature_type": feature_type,
+            "selected_hyperparameters": tuner.best_params_,
             "cv_f1_mean": round(cv_mean_f1, 4),
             "cv_f1_std": round(cv_std_f1, 4),
+            "cv_metrics": {
+                "accuracy_mean": cv_metrics["accuracy"]["mean"],
+                "accuracy_std": cv_metrics["accuracy"]["std"],
+                "precision_mean": cv_metrics["precision"]["mean"],
+                "precision_std": cv_metrics["precision"]["std"],
+                "recall_mean": cv_metrics["recall"]["mean"],
+                "recall_std": cv_metrics["recall"]["std"],
+                "f1_mean": cv_metrics["f1"]["mean"],
+                "f1_std": cv_metrics["f1"]["std"]
+            },
             "val_metrics": {
                 "accuracy": round(val_acc, 4),
                 "precision": round(val_prec, 4),
@@ -362,6 +414,34 @@ def train_models():
             "random_state": RANDOM_STATE,
             "bow_vocabulary_size": len(bow_vectorizer.vocabulary_),
             "tfidf_vocabulary_size": len(tfidf_vectorizer.vocabulary_)
+        },
+        "experiment": {
+            "version": "v2",
+            "trained_at_utc": datetime.now(timezone.utc).isoformat(),
+            "dataset": "ISOT Fake and Real News files available in ml/data",
+            "external_validation": {
+                "status": "not_performed",
+                "dataset": None,
+                "reason": "No independent, compatible fake/real labeled dataset is included in the repository."
+            },
+            "leakage_controls": [
+                "Stratified split before vectorizer fitting",
+                "Vectorizers fitted on training text only",
+                "Ensemble weights derived from validation F1 only",
+                "Final test set used only for evaluation"
+            ]
+        },
+        "data_quality": {
+            "source_rows": int(df.attrs.get("source_rows", len(df))),
+            "processed_rows": int(len(df)),
+            "empty_clean_text_rows_removed": int(df.attrs.get("empty_clean_text_rows_removed", 0)),
+            "duplicate_rows_removed": int(df.attrs.get("duplicate_rows_removed", 0)),
+            "missing_title_count": int(df.attrs.get("missing_title_count", 0)),
+            "missing_text_count": int(df.attrs.get("missing_text_count", 0)),
+            "class_distribution": {
+                str(label): int(count)
+                for label, count in df["label_name"].value_counts().items()
+            }
         },
         "models": model_results,
         "ensemble_weights": {

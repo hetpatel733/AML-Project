@@ -53,17 +53,19 @@ export const Analytics = () => {
   }
 
   const cm = analytics?.confusionMatrix || {
-    truePositive: 485,
-    falsePositive: 28,
-    trueNegative: 512,
-    falseNegative: 35,
-    totalSamples: 1060
+    truePositive: 0,
+    falsePositive: 0,
+    trueNegative: 0,
+    falseNegative: 0,
+    totalSamples: 0
   };
 
-  const calculatedAccuracy = ((cm.truePositive + cm.trueNegative) / cm.totalSamples) * 100;
-  const calculatedPrecision = (cm.truePositive / (cm.truePositive + cm.falsePositive)) * 100;
-  const calculatedRecall = (cm.truePositive / (cm.truePositive + cm.falseNegative)) * 100;
-  const calculatedF1 = (2 * (calculatedPrecision * calculatedRecall)) / (calculatedPrecision + calculatedRecall);
+  const calculatedAccuracy = cm.totalSamples ? ((cm.truePositive + cm.trueNegative) / cm.totalSamples) * 100 : 0;
+  const calculatedPrecision = cm.truePositive + cm.falsePositive ? (cm.truePositive / (cm.truePositive + cm.falsePositive)) * 100 : 0;
+  const calculatedRecall = cm.truePositive + cm.falseNegative ? (cm.truePositive / (cm.truePositive + cm.falseNegative)) * 100 : 0;
+  const calculatedF1 = calculatedPrecision + calculatedRecall
+    ? (2 * (calculatedPrecision * calculatedRecall)) / (calculatedPrecision + calculatedRecall)
+    : 0;
 
   return (
     <div className="page-container analytics-page">

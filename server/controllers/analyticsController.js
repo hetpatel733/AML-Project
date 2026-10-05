@@ -1,63 +1,36 @@
 import { Prediction } from '../models/Prediction.js';
 import { sendSuccess } from '../utils/response.js';
 
-/**
- * Baseline Empirical ML Model Evaluation Metrics
- * Configured from experimental benchmark results (ISOT Fake News Dataset).
- * In future phases, these can be dynamically populated from training run artifacts.
- */
-export const MODEL_BENCHMARKS = [
-  {
-    model: 'Passive Aggressive',
-    accuracy: 0.948,
-    precision: 0.952,
-    recall: 0.941,
-    f1Score: 0.946,
-    rocAuc: 0.982,
-    inferenceTimeMs: 12,
-    description: 'Online learning model with aggressive margin updates on misclassifications.'
-  },
-  {
-    model: 'Logistic Regression',
-    accuracy: 0.936,
-    precision: 0.931,
-    recall: 0.942,
-    f1Score: 0.936,
-    rocAuc: 0.974,
-    inferenceTimeMs: 8,
-    description: 'Sigmoid-activated linear classifier with calibrated probabilistic outputs.'
-  },
-  {
-    model: 'Linear SVM',
-    accuracy: 0.941,
-    precision: 0.945,
-    recall: 0.935,
-    f1Score: 0.940,
-    rocAuc: 0.979,
-    inferenceTimeMs: 15,
-    description: 'Maximum-margin hyperplane classifier optimized for high-dimensional text vectors.'
-  },
-  {
-    model: 'Multinomial Naive Bayes',
-    accuracy: 0.894,
-    precision: 0.887,
-    recall: 0.902,
-    f1Score: 0.894,
-    rocAuc: 0.942,
-    inferenceTimeMs: 4,
-    description: 'Probabilistic conditional frequency classifier based on Bayes theorem.'
-  },
-  {
-    model: 'Random Forest',
-    accuracy: 0.912,
-    precision: 0.920,
-    recall: 0.901,
-    f1Score: 0.910,
-    rocAuc: 0.956,
-    inferenceTimeMs: 45,
-    description: 'Ensemble bagging tree classifier evaluating 100 decision estimators.'
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const EXPERIMENT_PATH = path.resolve(__dirname, '../../ml/models/model_config.json');
+
+const loadExperiment = () => {
+  try {
+    return JSON.parse(fs.readFileSync(EXPERIMENT_PATH, 'utf8'));
+  } catch (error) {
+    console.warn('[Experiment] Could not load model_config.json:', error.message);
+    return null;
   }
-];
+};
+
+const toBenchmarkRows = (experiment) => Object.values(experiment?.models || {}).map((model) => ({
+  model: model.name,
+  accuracy: model.test_metrics?.accuracy,
+  precision: model.test_metrics?.precision,
+  recall: model.test_metrics?.recall,
+  f1Score: model.test_metrics?.f1_score,
+  rocAuc: model.test_metrics?.roc_auc,
+  cvMeanF1: model.cv_metrics?.f1_mean ?? model.cv_f1_mean,
+  cvStdF1: model.cv_metrics?.f1_std ?? model.cv_f1_std,
+  externalF1: model.external_metrics?.f1_score ?? null,
+  description: model.description,
+  featureType: model.feature_type
+}));
 
 /**
  * @desc    Get aggregate analytics, prediction counts, confidence metrics, and daily trends
@@ -66,6 +39,8 @@ export const MODEL_BENCHMARKS = [
  */
 export const getAnalytics = async (req, res, next) => {
   try {
+    const experiment = loadExperiment();
+    const modelPerformance = toBenchmarkRows(experiment);
     let totalPredictions = 0;
     let fakeCount = 0;
     let realCount = 0;
@@ -142,21 +117,6 @@ export const getAnalytics = async (req, res, next) => {
       console.warn('[Database Notice] Database aggregation unavailable. Using initial metrics structure.');
     }
 
-    // Default trend fallback if less than 2 data points recorded
-    if (trendData.length < 2) {
-      const now = new Date();
-      trendData = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(now);
-        d.setDate(d.getDate() - (6 - i));
-        return {
-          date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          fake: Math.max(1, Math.floor(fakeCount / 7) + (i % 3)),
-          real: Math.max(2, Math.floor(realCount / 7) + (i % 2)),
-          total: Math.max(3, Math.floor((fakeCount + realCount) / 7) + 2)
-        };
-      });
-    }
-
     const fakePercentage = totalPredictions > 0
       ? Number(((fakeCount / totalPredictions) * 100).toFixed(1))
       : 0;
@@ -165,13 +125,16 @@ export const getAnalytics = async (req, res, next) => {
       ? Number(((realCount / totalPredictions) * 100).toFixed(1))
       : 0;
 
-    const confusionMatrix = {
-      truePositive: 485,
-      falsePositive: 28,
-      trueNegative: 512,
-      falseNegative: 35,
-      totalSamples: 1060
-    };
+    const championMetrics = experiment?.champion_model?.test_metrics
+      || Object.values(experiment?.models || {})[0]?.test_metrics;
+    const championMatrix = championMetrics?.confusion_matrix;
+    const confusionMatrix = championMatrix ? {
+      truePositive: championMatrix[1][1],
+      falsePositive: championMatrix[0][1],
+      trueNegative: championMatrix[0][0],
+      falseNegative: championMatrix[1][0],
+      totalSamples: championMatrix.flat().reduce((sum, value) => sum + value, 0)
+    } : null;
 
     return sendSuccess(res, {
       totalPredictions,
@@ -179,12 +142,13 @@ export const getAnalytics = async (req, res, next) => {
       realCount,
       fakePercentage,
       realPercentage,
-      averageConfidence: avgConfidence || 0.942,
+      averageConfidence: avgConfidence,
       predictionsPerDay: trendData,
       trendData,
       confidenceDistribution,
       confusionMatrix,
-      modelPerformance: MODEL_BENCHMARKS
+      modelPerformance,
+      experiment
     });
   } catch (error) {
     next(error);
@@ -201,7 +165,7 @@ export const getPredictionStats = async (req, res, next) => {
     let totalPredictions = 0;
     let fakeCount = 0;
     let realCount = 0;
-    let avgConfidence = 0.935;
+    let avgConfidence = 0;
     let recentPredictions = [];
 
     try {
@@ -246,7 +210,7 @@ export const getPredictionStats = async (req, res, next) => {
  */
 export const getModelPerformance = async (req, res, next) => {
   try {
-    return sendSuccess(res, MODEL_BENCHMARKS);
+    return sendSuccess(res, toBenchmarkRows(loadExperiment()));
   } catch (error) {
     next(error);
   }

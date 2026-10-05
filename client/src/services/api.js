@@ -141,13 +141,7 @@ const saveLocalHistory = (data) => {
 /**
  * Academic ML Model Benchmark Statistics for comparison
  */
-export const MODEL_PERFORMANCE_DATA = [
-  { model: 'Passive Aggressive', accuracy: 0.948, precision: 0.952, recall: 0.941, f1Score: 0.946, speed: '12ms' },
-  { model: 'Logistic Regression', accuracy: 0.936, precision: 0.931, recall: 0.942, f1Score: 0.936, speed: '8ms' },
-  { model: 'Linear SVM', accuracy: 0.941, precision: 0.945, recall: 0.935, f1Score: 0.940, speed: '15ms' },
-  { model: 'Multinomial Naive Bayes', accuracy: 0.894, precision: 0.887, recall: 0.902, f1Score: 0.894, speed: '4ms' },
-  { model: 'Random Forest', accuracy: 0.912, precision: 0.920, recall: 0.901, f1Score: 0.910, speed: '45ms' }
-];
+export const MODEL_PERFORMANCE_DATA = [];
 
 /**
  * Mock Prediction Generator with NLP heuristic simulation
@@ -397,35 +391,17 @@ export const getAnalytics = async () => {
 
       trendData.push({
         date: dateStr,
-        fake: dayFake > 0 ? dayFake : Math.floor(Math.random() * 4) + 1,
-        real: dayReal > 0 ? dayReal : Math.floor(Math.random() * 5) + 2,
-        total: (dayFake + dayReal) > 0 ? (dayFake + dayReal) : Math.floor(Math.random() * 8) + 3
+        fake: dayFake,
+        real: dayReal,
+        total: dayFake + dayReal
       });
     }
-
-    // Confidence distribution buckets
-    const confidenceDistribution = [
-      { range: '50-60%', count: 2, label: 'Low' },
-      { range: '60-70%', count: 5, label: 'Moderate' },
-      { range: '70-80%', count: 12, label: 'High' },
-      { range: '80-90%', count: 24, label: 'Very High' },
-      { range: '90-100%', count: 38, label: 'Extremely High' }
-    ];
-
-    // Confusion Matrix visualization data (Academic test evaluation)
-    const confusionMatrix = {
-      truePositive: 485,   // Correctly identified Fake
-      falsePositive: 28,   // Real misclassified as Fake
-      trueNegative: 512,   // Correctly identified Real
-      falseNegative: 35,   // Fake misclassified as Real
-      totalSamples: 1060
-    };
 
     return {
       data: {
         trendData,
-        confidenceDistribution,
-        confusionMatrix,
+        confidenceDistribution: [],
+        confusionMatrix: null,
         modelPerformance: MODEL_PERFORMANCE_DATA
       },
       isMock: true

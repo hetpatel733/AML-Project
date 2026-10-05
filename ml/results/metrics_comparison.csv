@@ -1,7 +1,9 @@
-Model,Accuracy,Precision,Recall,F1-Score,ROC-AUC,True Negatives,False Positives,False Negatives,True Positives
-BoW + Logistic Regression,1.0,1.0,1.0,1.0,1.0,113,0,0,112
-TF-IDF + Logistic Regression,1.0,1.0,1.0,1.0,1.0,113,0,0,112
-TF-IDF + Multinomial Naive Bayes,1.0,1.0,1.0,1.0,1.0,113,0,0,112
-TF-IDF + Linear SVM,1.0,1.0,1.0,1.0,1.0,113,0,0,112
-TF-IDF + Random Forest,1.0,1.0,1.0,1.0,1.0,113,0,0,112
-TF-IDF + Passive Aggressive,1.0,1.0,1.0,1.0,1.0,113,0,0,112
+Model,Type,Representation,CV 5-Fold F1 (%),Val F1 (%),Test Accuracy (%),Test Precision (%),Test Recall (%),Test F1 (%),Test ROC-AUC,Normalized Ensemble Weight (%)
+BoW + Logistic Regression,Individual,BOW,100.00 +/- 0.00,100.00,100.00,100.00,100.00,100.00,1.0000,16.67
+TF-IDF + Logistic Regression,Individual,TFIDF,100.00 +/- 0.00,100.00,100.00,100.00,100.00,100.00,1.0000,16.67
+TF-IDF + Multinomial Naive Bayes,Individual,TFIDF,100.00 +/- 0.00,100.00,100.00,100.00,100.00,100.00,1.0000,16.67
+TF-IDF + Linear SVM,Individual,TFIDF,100.00 +/- 0.00,100.00,100.00,100.00,100.00,100.00,1.0000,16.67
+TF-IDF + Random Forest,Individual,TFIDF,100.00 +/- 0.00,100.00,100.00,100.00,100.00,100.00,1.0000,16.67
+TF-IDF + Passive Aggressive Classifier,Individual,TFIDF,100.00 +/- 0.00,100.00,100.00,100.00,100.00,100.00,1.0000,16.67
+Majority Voting Ensemble (6 Models),Ensemble (Hard),BoW + TF-IDF Hybrid,N/A,100.00,100.00,100.00,100.00,100.00,1.0000,N/A
+Validation-Weighted Ensemble (6 Models),Ensemble (Soft),BoW + TF-IDF Hybrid,N/A,100.00,100.00,100.00,100.00,100.00,1.0000,100.00
