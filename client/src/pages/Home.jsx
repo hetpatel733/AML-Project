@@ -102,7 +102,7 @@ export const Home = () => {
             </div>
             <div className="hero-stat-divider"></div>
             <div className="hero-stat-item">
-              <span className="hero-stat-num font-mono">6 Models</span>
+              <span className="hero-stat-num font-mono">4 Models</span>
               <span className="hero-stat-label">Parallel Classifiers</span>
             </div>
             <div className="hero-stat-divider"></div>

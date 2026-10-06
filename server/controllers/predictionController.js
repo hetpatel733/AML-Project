@@ -10,23 +10,24 @@ import { sendSuccess, sendError, sendPaginated } from '../utils/response.js';
  */
 export const createPrediction = async (req, res, next) => {
   try {
-    const { title, text, model } = req.body;
+    const { title, text, model, dataset = 'isot' } = req.body;
 
     // 1. Run full simulation / prediction
     let simResult = null;
     try {
-      simResult = await predictSimulationWithML({ title, text });
+      simResult = await predictSimulationWithML({ title, text, dataset });
     } catch (simErr) {
       console.warn('[Simulation Notice] Auto-simulation fallback on single prediction:', simErr.message);
     }
 
     // 2. Send title/text to the ML service (or configured dev mock)
-    const mlResult = await predictWithML({ title, text, model });
+    const mlResult = await predictWithML({ title, text, model, dataset });
 
     // 3. Prepare database document with full simulation payload
     const newPredictionData = {
       title,
       text,
+      dataset,
       prediction: mlResult.prediction,
       confidence: mlResult.confidence,
       model: mlResult.model,
@@ -85,13 +86,13 @@ export const createPrediction = async (req, res, next) => {
  */
 export const simulatePrediction = async (req, res, next) => {
   try {
-    const { title, text } = req.body;
+    const { title, text, dataset = 'isot' } = req.body;
 
     if (!text || text.trim().length < 5) {
       return sendError(res, 'Article text must be at least 5 characters long for simulation.', 400);
     }
 
-    const simResult = await predictSimulationWithML({ title, text });
+    const simResult = await predictSimulationWithML({ title, text, dataset });
 
     // Persist to database if possible
     let savedDocId = 'sim_' + Date.now().toString(36);
@@ -100,6 +101,7 @@ export const simulatePrediction = async (req, res, next) => {
       const doc = await Prediction.create({
         title: title || 'Untitled Simulation',
         text: text,
+        dataset,
         prediction: primary.label || 'FAKE',
         confidence: primary.confidence || 0.5,
         model: primary.decision_source || 'Validation-Weighted Soft Ensemble',
@@ -215,7 +217,8 @@ export const getFeedbackList = async (req, res, next) => {
  */
 export const getExperimentMetadata = async (req, res, next) => {
   try {
-    const meta = await getExperimentMetadataFromML();
+    const dataset = req.query.dataset || 'isot';
+    const meta = await getExperimentMetadataFromML(dataset);
     if (meta) {
       return sendSuccess(res, meta);
     }
@@ -237,9 +240,10 @@ export const getPredictions = async (req, res, next) => {
     const search = req.query.search ? req.query.search.trim() : '';
     const predictionFilter = req.query.prediction ? req.query.prediction.trim().toUpperCase() : 'ALL';
     const sortBy = req.query.sortBy || 'date_desc';
+    const dataset = req.query.dataset || 'isot';
 
     // Build query filter
-    const query = {};
+    const query = { dataset };
 
     if (predictionFilter && predictionFilter !== 'ALL') {
       query.prediction = predictionFilter;
@@ -270,6 +274,7 @@ export const getPredictions = async (req, res, next) => {
         Prediction.countDocuments(query)
       ]);
     } catch (dbErr) {
+      console.error('[Database Error in getHistory]:', dbErr);
       console.warn('[Database Notice] MongoDB query failed. Returning empty list fallback.');
       predictions = [];
       total = 0;

@@ -62,6 +62,9 @@ export const Analytics = () => {
     falseNegative: 0,
     totalSamples: 0
   };
+  const confusionMatrices = analytics?.confusionMatrices?.length
+    ? analytics.confusionMatrices
+    : [cm];
 
   const calculatedAccuracy = cm.totalSamples ? ((cm.truePositive + cm.trueNegative) / cm.totalSamples) * 100 : 0;
   const calculatedPrecision = cm.truePositive + cm.falsePositive ? (cm.truePositive / (cm.truePositive + cm.falsePositive)) * 100 : 0;
@@ -158,24 +161,30 @@ export const Analytics = () => {
         </div>
       </div>
 
-      {/* Row 3: Confusion Matrix Visualization & Mathematical Formulation */}
+      {/* Row 3: Confusion Matrices for Every Trained Model */}
       <div className="analytics-section">
-        <div className="card confusion-matrix-card">
-          <div className="card-header-styled">
-            <div className="card-header-left">
-              <div className="card-icon-badge text-primary">
-                <Grid size={18} />
-              </div>
-              <div>
-                <h3 className="card-title">Confusion Matrix</h3>
-                <p className="card-subtitle">
-                  Classification accuracy on {cm.totalSamples} test samples
-                </p>
-              </div>
-            </div>
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(520px, 1fr))', gap: '18px', width: '100%' }}>
+          {confusionMatrices.map((matrix) => {
+            const accuracy = matrix.totalSamples ? ((matrix.truePositive + matrix.trueNegative) / matrix.totalSamples) * 100 : 0;
+            const precision = matrix.truePositive + matrix.falsePositive ? (matrix.truePositive / (matrix.truePositive + matrix.falsePositive)) * 100 : 0;
+            const recall = matrix.truePositive + matrix.falseNegative ? (matrix.truePositive / (matrix.truePositive + matrix.falseNegative)) * 100 : 0;
+            const f1 = precision + recall ? (2 * precision * recall) / (precision + recall) : 0;
 
-          <div className="matrix-content-layout">
+            return (
+              <div className="card confusion-matrix-card" key={matrix.modelId || matrix.model}>
+                <div className="card-header-styled">
+                  <div className="card-header-left">
+                    <div className="card-icon-badge text-primary">
+                      <Grid size={18} />
+                    </div>
+                    <div>
+                      <h3 className="card-title">{matrix.model || 'Confusion Matrix'}</h3>
+                      <p className="card-subtitle">Classification accuracy on {matrix.totalSamples} test samples</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="matrix-content-layout">
             {/* Visual 2x2 Matrix Grid */}
             <div className="matrix-grid-wrapper">
               <div className="matrix-table-container">
@@ -189,14 +198,14 @@ export const Analytics = () => {
                     <span>ACTUAL FAKE</span>
                   </div>
                   <div className="matrix-cell matrix-tp">
-                    <span className="matrix-cell-tag">True Positive (TP)</span>
-                    <span className="matrix-cell-val font-mono">{cm.truePositive}</span>
-                    <span className="matrix-cell-sub">Correctly Flagged Fake</span>
+                    <span className="matrix-cell-tag">True Negative (TN)</span>
+                    <span className="matrix-cell-val font-mono">{matrix.trueNegative}</span>
+                    <span className="matrix-cell-sub">Correctly Classified Fake</span>
                   </div>
                   <div className="matrix-cell matrix-fn">
-                    <span className="matrix-cell-tag">False Negative (FN)</span>
-                    <span className="matrix-cell-val font-mono">{cm.falseNegative}</span>
-                    <span className="matrix-cell-sub">Fake Missed as Real</span>
+                    <span className="matrix-cell-tag">False Positive (FP)</span>
+                    <span className="matrix-cell-val font-mono">{matrix.falsePositive}</span>
+                    <span className="matrix-cell-sub">Real Classified as Fake</span>
                   </div>
                 </div>
 
@@ -205,14 +214,14 @@ export const Analytics = () => {
                     <span>ACTUAL REAL</span>
                   </div>
                   <div className="matrix-cell matrix-fp">
-                    <span className="matrix-cell-tag">False Positive (FP)</span>
-                    <span className="matrix-cell-val font-mono">{cm.falsePositive}</span>
-                    <span className="matrix-cell-sub">Real Misclassified as Fake</span>
+                    <span className="matrix-cell-tag">False Negative (FN)</span>
+                    <span className="matrix-cell-val font-mono">{matrix.falseNegative}</span>
+                    <span className="matrix-cell-sub">Real Missed as Fake</span>
                   </div>
                   <div className="matrix-cell matrix-tn">
-                    <span className="matrix-cell-tag">True Negative (TN)</span>
-                    <span className="matrix-cell-val font-mono">{cm.trueNegative}</span>
-                    <span className="matrix-cell-sub">Correctly Verified Real</span>
+                    <span className="matrix-cell-tag">True Positive (TP)</span>
+                    <span className="matrix-cell-val font-mono">{matrix.truePositive}</span>
+                    <span className="matrix-cell-sub">Correctly Classified Real</span>
                   </div>
                 </div>
               </div>
@@ -225,15 +234,15 @@ export const Analytics = () => {
               <div className="metric-derived-item">
                 <div className="metric-header">
                   <span className="metric-name">Overall Accuracy</span>
-                  <span className="metric-val font-mono text-primary">{calculatedAccuracy.toFixed(2)}%</span>
+                  <span className="metric-val font-mono text-primary">{accuracy.toFixed(2)}%</span>
                 </div>
                 <div className="metric-formula font-mono">(TP + TN) / Total</div>
               </div>
 
               <div className="metric-derived-item">
                 <div className="metric-header">
-                  <span className="metric-name">Precision (Fake Class)</span>
-                  <span className="metric-val font-mono text-success">{calculatedPrecision.toFixed(2)}%</span>
+                  <span className="metric-name">Precision (Real Class)</span>
+                  <span className="metric-val font-mono text-success">{precision.toFixed(2)}%</span>
                 </div>
                 <div className="metric-formula font-mono">TP / (TP + FP)</div>
               </div>
@@ -241,7 +250,7 @@ export const Analytics = () => {
               <div className="metric-derived-item">
                 <div className="metric-header">
                   <span className="metric-name">Recall / Sensitivity</span>
-                  <span className="metric-val font-mono text-purple">{calculatedRecall.toFixed(2)}%</span>
+                  <span className="metric-val font-mono text-purple">{recall.toFixed(2)}%</span>
                 </div>
                 <div className="metric-formula font-mono">TP / (TP + FN)</div>
               </div>
@@ -249,12 +258,15 @@ export const Analytics = () => {
               <div className="metric-derived-item">
                 <div className="metric-header">
                   <span className="metric-name">F1 Score (Harmonic Mean)</span>
-                  <span className="metric-val font-mono text-amber">{calculatedF1.toFixed(2)}%</span>
+                  <span className="metric-val font-mono text-amber">{f1.toFixed(2)}%</span>
                 </div>
                 <div className="metric-formula font-mono">2 &times; (Precision &times; Recall) / (Precision + Recall)</div>
               </div>
             </div>
-          </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

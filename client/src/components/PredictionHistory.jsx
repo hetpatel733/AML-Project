@@ -152,7 +152,8 @@ export const PredictionHistory = ({
               const soft = sim.ensembles?.weighted_soft_ensemble || {};
               const realVotes = hard.real_votes ?? (isFake ? 0 : 6);
               const fakeVotes = hard.fake_votes ?? (isFake ? 6 : 0);
-              const isUnanimous = realVotes === 6 || fakeVotes === 6;
+              const modelCount = sim.candidate_models?.length || 4;
+              const isUnanimous = realVotes === modelCount || fakeVotes === modelCount;
               const wordCount = sim.article_analysis?.word_count ?? (item.text ? item.text.trim().split(/\s+/).length : 0);
               const ttr = sim.article_analysis?.lexical_diversity ?? 0.65;
 
@@ -221,7 +222,7 @@ export const PredictionHistory = ({
                         <span>{realVotes}:{fakeVotes} {isFake ? 'Fake' : 'Real'}</span>
                       </span>
                       <span className="consensus-subtext">
-                        {isUnanimous ? 'Unanimous 6/6' : 'Split Candidate Vote'}
+                        {isUnanimous ? `Unanimous ${modelCount}/${modelCount}` : 'Split Candidate Vote'}
                       </span>
                     </div>
                   </td>
@@ -430,7 +431,9 @@ export const PredictionHistory = ({
 
                       <div className="ensemble-metrics-footer">
                         <span>Validation Weight Strategy: <strong>5-Fold CV F1 Normalized</strong></span>
-                        <span>Academic Test F1: <strong>0.991</strong></span>
+                        <span>Academic Test F1: <strong>{activeSim.ensembles?.weighted_soft_ensemble?.test_dataset_metrics?.f1 != null
+                          ? formatConfidence(activeSim.ensembles.weighted_soft_ensemble.test_dataset_metrics.f1)
+                          : 'N/A'}</strong></span>
                       </div>
                     </div>
 
@@ -446,7 +449,7 @@ export const PredictionHistory = ({
                         </span>
                       </div>
                       <p className="ensemble-formula-code font-mono">
-                        {activeSim.ensembles?.majority_voting_hard_ensemble?.formula || 'Verdict = mode(model_verdicts), Vote % = max(N_REAL, N_FAKE) / 6'}
+                        {activeSim.ensembles?.majority_voting_hard_ensemble?.formula || 'Verdict = mode(model_verdicts), Vote % = max(N_REAL, N_FAKE) / N_models'}
                       </p>
 
                       <div className="voting-tally-visual">
@@ -464,8 +467,10 @@ export const PredictionHistory = ({
                       </div>
 
                       <div className="ensemble-metrics-footer">
-                        <span>Consensus Agreement: <strong>{(activeSim.ensembles?.majority_voting_hard_ensemble?.real_votes === 6 || activeSim.ensembles?.majority_voting_hard_ensemble?.fake_votes === 6) ? 'Unanimous (6 of 6)' : 'Split Decision'}</strong></span>
-                        <span>Academic Test F1: <strong>0.989</strong></span>
+                        <span>Consensus Agreement: <strong>{(activeSim.ensembles?.majority_voting_hard_ensemble?.real_votes === modelCount || activeSim.ensembles?.majority_voting_hard_ensemble?.fake_votes === modelCount) ? `Unanimous (${modelCount} of ${modelCount})` : 'Split Decision'}</strong></span>
+                        <span>Academic Test F1: <strong>{activeSim.ensembles?.majority_voting_hard_ensemble?.test_dataset_metrics?.f1 != null
+                          ? formatConfidence(activeSim.ensembles.majority_voting_hard_ensemble.test_dataset_metrics.f1)
+                          : 'N/A'}</strong></span>
                       </div>
                     </div>
                   </div>
@@ -549,7 +554,7 @@ export const PredictionHistory = ({
                   <div className="chart-wrapper-card">
                     <div className="chart-header-row">
                       <div>
-                        <h4 className="chart-heading">Probability Distribution Across 6 Models & Dual Ensembles</h4>
+                        <h4 className="chart-heading">Probability Distribution Across 4 Models & Dual Ensembles</h4>
                         <p className="chart-subheading">
                           Visual comparison of P(REAL) vs P(FAKE) estimated for this specific article.
                         </p>

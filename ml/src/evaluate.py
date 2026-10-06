@@ -1,10 +1,12 @@
+"""
+Evaluation module for computing metrics and writing benchmarks.
+Handles 5-fold CV results, final test metrics, and benchmark files.
+"""
 import json
-import joblib
+import csv
 import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 from pathlib import Path
+from datetime import datetime
 from sklearn.metrics import (
     accuracy_score,
     precision_score,
@@ -12,316 +14,297 @@ from sklearn.metrics import (
     f1_score,
     roc_auc_score,
     confusion_matrix,
-    classification_report,
-    roc_curve,
-    precision_recall_curve
+    classification_report
 )
-
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.config import (
-    DATA_DIR,
-    MODELS_DIR,
-    RESULTS_DIR,
-    BOW_VECTORIZER_PATH,
-    TFIDF_VECTORIZER_PATH,
-    VECTORIZER_PATH,
-    BOW_LOGISTIC_REGRESSION_PATH,
-    LOGISTIC_REGRESSION_PATH,
-    NAIVE_BAYES_PATH,
-    SVM_PATH,
-    RANDOM_FOREST_PATH,
-    PASSIVE_AGGRESSIVE_PATH,
-    FINAL_MODEL_PATH,
-    METRICS_JSON_PATH,
-    METRICS_CSV_PATH,
-    CONFUSION_MATRIX_PNG,
-    MODEL_COMPARISON_PNG,
-    ROC_CURVE_PNG,
-    PRECISION_RECALL_PNG,
-    LABEL_MAPPING
+    get_benchmarks_json_path,
+    get_benchmarks_csv_path,
+    get_predictions_dir,
+    MODEL_TFIDF_PAC,
+    MODEL_TFIDF_RF,
+    MODEL_TFIDF_LR,
+    MODEL_GLOVE_CNN_BILSTM
 )
-from src.data_preprocessing import prepare_and_split_data_3way, clean_text
 
 
-# Set publication-quality visualization style
-plt.style.use("seaborn-v0_8-whitegrid" if "seaborn-v0_8-whitegrid" in plt.style.available else "default")
-plt.rcParams["font.family"] = "sans-serif"
-plt.rcParams["font.size"] = 10
-plt.rcParams["axes.titlesize"] = 12
-plt.rcParams["axes.labelsize"] = 11
+def _metric_block(metrics):
+    return {
+        "accuracy": metrics.get("accuracy"),
+        "precision": metrics.get("precision"),
+        "recall": metrics.get("recall"),
+        "f1": metrics.get("f1"),
+        "rocAuc": metrics.get("roc_auc"),
+        "tp": metrics.get("tp"),
+        "tn": metrics.get("tn"),
+        "fp": metrics.get("fp"),
+        "fn": metrics.get("fn")
+    }
 
 
-def run_full_evaluation():
-    """
-    Comprehensive Academic Model Evaluation:
-    - Measures Accuracy, Precision, Recall, F1-Score, ROC-AUC, Confusion Matrices.
-    - Saves metrics.json and metrics_comparison.csv.
-    - Generates and saves 4 publication-quality visualization figures.
-    """
-    print("=" * 75)
-    print("       FAKE NEWS DETECTION - ACADEMIC MODEL EVALUATION")
-    print("=" * 75)
+def write_dataset_benchmark(dataset, experiment_version, timestamp, splits,
+                             label_mapping, preprocessing, model_results,
+                             ensemble=None):
+    """Serialize one authoritative benchmark document from executed results."""
+    X_train, y_train = splits["training"]
+    X_val, y_val = splits["validation"]
+    X_test, y_test = splits["testing"]
+    class_distribution = {
+        "FAKE": int(np.sum(y_train == 0) + np.sum(y_val == 0) + np.sum(y_test == 0)),
+        "REAL": int(np.sum(y_train == 1) + np.sum(y_val == 1) + np.sum(y_test == 1))
+    }
+    total_records = len(y_train) + len(y_val) + len(y_test)
 
-# 1. Load Vectorizers and Test Data
-    if not TFIDF_VECTORIZER_PATH.exists():
-        raise FileNotFoundError(f"TF-IDF Vectorizer not found at {TFIDF_VECTORIZER_PATH}. Run train.py first!")
-
-    tfidf_vectorizer = joblib.load(TFIDF_VECTORIZER_PATH)
-    bow_vectorizer = joblib.load(BOW_VECTORIZER_PATH) if BOW_VECTORIZER_PATH.exists() else None
-
-    # Reload test set
-    if (DATA_DIR / "X_test_raw.joblib").exists() and (DATA_DIR / "y_test.npy").exists():
-        X_test_raw = joblib.load(DATA_DIR / "X_test_raw.joblib")
-        y_test = np.load(DATA_DIR / "y_test.npy")
-    else:
-        _, _, X_test_raw, _, _, y_test, _ = prepare_and_split_data_3way()
-
-    X_test_tfidf = tfidf_vectorizer.transform(X_test_raw)
-    X_test_bow = bow_vectorizer.transform(X_test_raw) if bow_vectorizer else None
-
-    # 2. Define Models to Evaluate (all 6)
-    model_configs = [
-        ("BoW + Logistic Regression", BOW_LOGISTIC_REGRESSION_PATH, X_test_bow),
-        ("TF-IDF + Logistic Regression", LOGISTIC_REGRESSION_PATH, X_test_tfidf),
-        ("TF-IDF + Multinomial Naive Bayes", NAIVE_BAYES_PATH, X_test_tfidf),
-        ("TF-IDF + Linear SVM", SVM_PATH, X_test_tfidf),
-        ("TF-IDF + Random Forest", RANDOM_FOREST_PATH, X_test_tfidf),
-        ("TF-IDF + Passive Aggressive", PASSIVE_AGGRESSIVE_PATH, X_test_tfidf)
-    ]
-
-    metrics_dict = {}
-    curves_data = {}
-    confusion_matrices = {}
-
-    for name, path, X_eval in model_configs:
-        if X_eval is None or not path.exists():
-            print(f"[Warning] Model or feature matrix not found for {name}. Skipping...")
-            continue
-
-        print(f"\n[Evaluating] Processing: {name}")
-        clf = joblib.load(path)
-
-        # Predictions
-        y_pred = clf.predict(X_eval)
-
-        # Probability scores for label 1 (REAL)
-        if hasattr(clf, "predict_proba"):
-            y_proba = clf.predict_proba(X_eval)[:, 1]
-        elif hasattr(clf, "decision_function"):
-            decision = clf.decision_function(X_eval)
-            y_proba = 1 / (1 + np.exp(-decision))
-        else:
-            y_proba = y_pred
-
-        # Quantitative Metrics
-        acc = float(accuracy_score(y_test, y_pred))
-        prec = float(precision_score(y_test, y_pred, zero_division=0))
-        rec = float(recall_score(y_test, y_pred, zero_division=0))
-        f1 = float(f1_score(y_test, y_pred, zero_division=0))
-        roc_auc = float(roc_auc_score(y_test, y_proba))
-        cm = confusion_matrix(y_test, y_pred)
-        tn, fp, fn, tp = cm.ravel()
-
-        cls_rep = classification_report(
-            y_test,
-            y_pred,
-            target_names=["FAKE (0)", "REAL (1)"],
-            output_dict=True,
-            zero_division=0
-        )
-
-        metrics_dict[name] = {
-            "accuracy": round(acc, 4),
-            "precision": round(prec, 4),
-            "recall": round(rec, 4),
-            "f1_score": round(f1, 4),
-            "roc_auc": round(roc_auc, 4),
-            "confusion_matrix": {
-                "true_negative": int(tn),
-                "false_positive": int(fp),
-                "false_negative": int(fn),
-                "true_positive": int(tp),
-                "total_test_samples": int(len(y_test))
+    models = []
+    for result in model_results:
+        metrics = result.get("test_metrics", {})
+        folds = result.get("cv_folds", [])
+        model_entry = {
+            "id": result["model"],
+            "name": result.get("name", result["model"]),
+            "type": result.get("type", "classical_ml"),
+            "representation": result.get("representation", "TF-IDF"),
+            "status": result.get("status", "trained"),
+            "training": result.get("training", {"count": len(y_train), "percentage": len(y_train) / total_records * 100}),
+            "crossValidation": {
+                "folds": folds,
+                "mean": {key.replace("_mean", ""): value for key, value in result.get("cv_stats", {}).items() if key.endswith("_mean")},
+                "std": {key.replace("_std", ""): value for key, value in result.get("cv_stats", {}).items() if key.endswith("_std")}
             },
-            "classification_report": cls_rep
+            "validation": result.get("validation", {"count": len(y_val), "percentage": len(y_val) / total_records * 100}),
+            "test": {"count": len(y_test), "percentage": len(y_test) / total_records * 100, "metrics": _metric_block(metrics)},
+            "confusionMatrix": {
+                "labels": ["FAKE", "REAL"],
+                "matrix": [[metrics.get("tn"), metrics.get("fp")], [metrics.get("fn"), metrics.get("tp")]],
+                "truePositive": metrics.get("tp"),
+                "trueNegative": metrics.get("tn"),
+                "falsePositive": metrics.get("fp"),
+                "falseNegative": metrics.get("fn")
+            },
+            "metrics": _metric_block(metrics),
+            "hyperparameters": result.get("hyperparameters", {}),
+            "trainingTime": result.get("training_time"),
+            "artifactPath": result.get("artifact_path"),
+            "predictionArchive": result.get("prediction_archive"),
+            "trainingHistory": result.get("training_history")
         }
+        models.append(model_entry)
 
-        confusion_matrices[name] = cm
-        curves_data[name] = {
-            "y_proba": y_proba,
-            "roc_auc": roc_auc
-        }
-
-        print(f"  -> Accuracy:  {acc * 100:.2f}%")
-        print(f"  -> Precision: {prec * 100:.2f}%")
-        print(f"  -> Recall:    {rec * 100:.2f}%")
-        print(f"  -> F1-Score:  {f1 * 100:.2f}%")
-        print(f"  -> ROC-AUC:   {roc_auc:.4f}")
-        print(f"  -> Matrix:    TN={tn}, FP={fp}, FN={fn}, TP={tp}")
-
-    # 3. Save JSON Metrics
-    with open(METRICS_JSON_PATH, "w", encoding="utf-8") as f:
-        json.dump(metrics_dict, f, indent=2)
-    print(f"\n[Persistence] Metrics JSON saved to: {METRICS_JSON_PATH}")
-
-    # 4. Save Tabular CSV Metrics
-    csv_rows = []
-    for name, data in metrics_dict.items():
-        csv_rows.append({
-            "Model": name,
-            "Accuracy": data["accuracy"],
-            "Precision": data["precision"],
-            "Recall": data["recall"],
-            "F1-Score": data["f1_score"],
-            "ROC-AUC": data["roc_auc"],
-            "True Negatives": data["confusion_matrix"]["true_negative"],
-            "False Positives": data["confusion_matrix"]["false_positive"],
-            "False Negatives": data["confusion_matrix"]["false_negative"],
-            "True Positives": data["confusion_matrix"]["true_positive"]
-        })
-    metrics_df = pd.DataFrame(csv_rows)
-    metrics_df.to_csv(METRICS_CSV_PATH, index=False)
-    print(f"[Persistence] Comparison CSV saved to: {METRICS_CSV_PATH}")
-
-    # 5. Generate Figure 1: Confusion Matrices Grid
-    print("\n[Visualization] Generating Confusion Matrices Plot...")
-    num_models = len(confusion_matrices)
-    cols = 3 if num_models >= 6 else 2
-    rows = int(np.ceil(num_models / cols))
-
-    fig, axes = plt.subplots(rows, cols, figsize=(5 * cols, 4.2 * rows))
-    axes = np.array(axes).flatten()
-
-    for idx, (name, cm) in enumerate(confusion_matrices.items()):
-        ax = axes[idx]
-        sns.heatmap(
-            cm,
-            annot=True,
-            fmt="d",
-            cmap="Blues",
-            cbar=False,
-            ax=ax,
-            xticklabels=["Predicted FAKE", "Predicted REAL"],
-            yticklabels=["Actual FAKE", "Actual REAL"],
-            annot_kws={"size": 12, "weight": "bold"}
-        )
-        ax.set_title(f"{name}", fontsize=11, pad=10, weight="bold")
-        ax.set_ylabel("Ground Truth")
-        ax.set_xlabel("Classifier Output")
-
-    # Hide unused subplots
-    for idx in range(num_models, len(axes)):
-        fig.delaxes(axes[idx])
-
-    plt.tight_layout()
-    plt.savefig(CONFUSION_MATRIX_PNG, dpi=300, bbox_inches="tight")
-    plt.close()
-    print(f"[Plot Saved] {CONFUSION_MATRIX_PNG}")
-
-    # 6. Generate Figure 2: Model Comparison Bar Chart
-    print("[Visualization] Generating Model Comparison Chart...")
-    plot_df = metrics_df.melt(
-        id_vars=["Model"],
-        value_vars=["Accuracy", "Precision", "Recall", "F1-Score", "ROC-AUC"],
-        var_name="Metric",
-        value_name="Score"
-    )
-
-    plt.figure(figsize=(14, 6))
-    palette = ["#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"]
-    chart = sns.barplot(
-        data=plot_df,
-        x="Model",
-        y="Score",
-        hue="Metric",
-        palette=palette
-    )
-    plt.title("Empirical Performance Comparison Across All NLP Classifiers", fontsize=14, weight="bold", pad=15)
-    plt.ylim(0.70, 1.02)
-    plt.ylabel("Score (0.00 - 1.00)")
-    plt.xlabel("Classifier")
-    plt.xticks(rotation=15, ha="right")
-    plt.legend(loc="lower right", frameon=True)
-    plt.grid(axis="y", linestyle="--", alpha=0.7)
-
-    # Add numeric labels on bars
-    for p in chart.patches:
-        height = p.get_height()
-        if not np.isnan(height) and height > 0:
-            chart.annotate(
-                f"{height:.2f}",
-                (p.get_x() + p.get_width() / 2.0, height),
-                ha="center",
-                va="bottom",
-                fontsize=7.5,
-                xytext=(0, 2),
-                textcoords="offset points"
-            )
-
-    plt.tight_layout()
-    plt.savefig(MODEL_COMPARISON_PNG, dpi=300, bbox_inches="tight")
-    plt.close()
-    print(f"[Plot Saved] {MODEL_COMPARISON_PNG}")
-
-    # 7. Generate Figure 3: ROC Curves
-    print("[Visualization] Generating ROC Curves Plot...")
-    plt.figure(figsize=(9, 7))
-    palette_roc = ["#2563eb", "#059669", "#d97706", "#7c3aed", "#dc2626", "#0891b2"]
-
-    for idx, (name, data) in enumerate(curves_data.items()):
-        fpr, tpr, _ = roc_curve(y_test, data["y_proba"])
-        plt.plot(
-            fpr,
-            tpr,
-            label=f"{name} (AUC = {data['roc_auc']:.4f})",
-            color=palette_roc[idx % len(palette_roc)],
-            linewidth=2.0
-        )
-
-    plt.plot([0, 1], [0, 1], "k--", label="Random Classifier (AUC = 0.5000)", alpha=0.6)
-    plt.xlim([-0.02, 1.02])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel("False Positive Rate (1 - Specificity)")
-    plt.ylabel("True Positive Rate (Sensitivity / Recall)")
-    plt.title("Receiver Operating Characteristic (ROC) Curves", fontsize=14, weight="bold", pad=15)
-    plt.legend(loc="lower right", frameon=True, fontsize=9)
-    plt.tight_layout()
-    plt.savefig(ROC_CURVE_PNG, dpi=300, bbox_inches="tight")
-    plt.close()
-    print(f"[Plot Saved] {ROC_CURVE_PNG}")
-
-    # 8. Generate Figure 4: Precision-Recall Curves
-    print("[Visualization] Generating Precision-Recall Curves Plot...")
-    plt.figure(figsize=(9, 7))
-
-    for idx, (name, data) in enumerate(curves_data.items()):
-        prec_curve, rec_curve, _ = precision_recall_curve(y_test, data["y_proba"])
-        plt.plot(
-            rec_curve,
-            prec_curve,
-            label=f"{name}",
-            color=palette_roc[idx % len(palette_roc)],
-            linewidth=2.0
-        )
-
-    plt.xlim([0.0, 1.02])
-    plt.ylim([0.70, 1.05])
-    plt.xlabel("Recall")
-    plt.ylabel("Precision")
-    plt.title("Precision-Recall Curves Across All NLP Classifiers", fontsize=14, weight="bold", pad=15)
-    plt.legend(loc="lower left", frameon=True, fontsize=9)
-    plt.tight_layout()
-    plt.savefig(PRECISION_RECALL_PNG, dpi=300, bbox_inches="tight")
-    plt.close()
-    print(f"[Plot Saved] {PRECISION_RECALL_PNG}")
-
-    print("\n" + "=" * 75)
-    print("       ALL EVALUATIONS AND ARTIFACTS COMPLETED SUCCESSFULLY!")
-    print("=" * 75)
-    return metrics_dict
+    benchmark = {
+        "dataset": {
+            "id": dataset,
+            "name": dataset.upper(),
+            "description": "Binary fake-news classification dataset.",
+            "totalRecords": total_records,
+            "classes": ["FAKE", "REAL"],
+            "classDistribution": class_distribution,
+            "labelMapping": label_mapping,
+            "preprocessing": preprocessing
+        },
+        "experiment": {
+            "version": experiment_version,
+            "trainingTimestamp": timestamp,
+            "randomSeed": 42,
+            "crossValidation": {"folds": 5, "strategy": "StratifiedKFold"}
+        },
+        "splits": {
+            "training": {"count": len(y_train), "percentage": len(y_train) / total_records * 100, "classDistribution": {"FAKE": int(np.sum(y_train == 0)), "REAL": int(np.sum(y_train == 1))}},
+            "validation": {"count": len(y_val), "percentage": len(y_val) / total_records * 100, "classDistribution": {"FAKE": int(np.sum(y_val == 0)), "REAL": int(np.sum(y_val == 1))}},
+            "testing": {"count": len(y_test), "percentage": len(y_test) / total_records * 100, "classDistribution": {"FAKE": int(np.sum(y_test == 0)), "REAL": int(np.sum(y_test == 1))}}
+        },
+        "models": models,
+        "ensemble": ensemble or {"status": "unavailable", "reason": "Ensemble metrics were not produced by the executed experiment."},
+        "predictionArchive": {"path": f"ml/results/{dataset}/predictions", "count": len(y_test) * sum(model.get("status", "trained") == "trained" for model in models)}
+    }
+    filepath = get_benchmarks_json_path(dataset)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    with open(filepath, "w", encoding="utf-8") as file:
+        json.dump(benchmark, file, indent=2, allow_nan=False)
+    return filepath
 
 
-if __name__ == "__main__":
-    run_full_evaluation()
+def calculate_metrics(y_true, y_pred, y_score=None):
+    """Calculate all required metrics."""
+    metrics = {}
+    
+    metrics["accuracy"] = accuracy_score(y_true, y_pred)
+    metrics["precision"] = precision_score(y_true, y_pred, average="binary", zero_division=0)
+    metrics["recall"] = recall_score(y_true, y_pred, average="binary", zero_division=0)
+    metrics["f1"] = f1_score(y_true, y_pred, average="binary", zero_division=0)
+    
+    # Confusion matrix components
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    metrics["tp"] = int(tp)
+    metrics["tn"] = int(tn)
+    metrics["fp"] = int(fp)
+    metrics["fn"] = int(fn)
+    
+    # ROC-AUC if probabilities available
+    if y_score is not None and len(np.unique(y_true)) == 2:
+        try:
+            metrics["roc_auc"] = roc_auc_score(y_true, y_score)
+        except ValueError:
+            metrics["roc_auc"] = None
+    
+    return metrics
+
+
+def calculate_cv_statistics(fold_metrics: list):
+    """Calculate mean and standard deviation from fold results."""
+    if not fold_metrics:
+        return {}
+    
+    keys = fold_metrics[0].keys()
+    stats = {}
+    
+    for key in keys:
+        values = [m[key] for m in fold_metrics if m.get(key) is not None]
+        if values:
+            stats[f"{key}_mean"] = np.mean(values)
+            stats[f"{key}_std"] = np.std(values)
+    
+    return stats
+
+
+def save_predictions(dataset: str, model_name: str, experiment_version: str,
+                     X_test, y_true, y_pred, y_score, predictions_dir: Path):
+    """Save raw predictions to JSON lines file."""
+    predictions_dir.mkdir(parents=True, exist_ok=True)
+    
+    filename = f"{experiment_version}_{model_name}_predictions.jsonl"
+    filepath = predictions_dir / filename
+    
+    with open(filepath, "w") as f:
+        for i, (text, true_label, pred_label, score) in enumerate(zip(X_test, y_true, y_pred, y_score)):
+            record = {
+                "dataset": dataset,
+                "model": model_name,
+                "experiment_version": experiment_version,
+                "input_id": i,
+                "text": text[:500] if len(text) > 500 else text,
+                "prediction": int(pred_label) if isinstance(pred_label, (int, np.integer)) else pred_label,
+                "confidence": float(score) if score is not None else None,
+                "true_label": int(true_label) if isinstance(true_label, (int, np.integer)) else true_label,
+                "correct": bool(pred_label == true_label),
+                "timestamp": datetime.now().isoformat()
+            }
+            f.write(json.dumps(record) + "\n")
+    
+    return filepath
+
+
+def write_benchmarks_json(dataset: str, model_name: str, experiment_version: str,
+                          cv_metrics: list, cv_stats: dict, test_metrics: dict,
+                          config: dict):
+    """Write benchmark JSON file."""
+    benchmark = {
+        "dataset": dataset,
+        "model": model_name,
+        "experiment_version": experiment_version,
+        "timestamp": datetime.now().isoformat(),
+        "config": config,
+        "cv_folds": cv_metrics,
+        "cv_statistics": cv_stats,
+        "test_metrics": test_metrics
+    }
+    
+    filepath = get_benchmarks_json_path(dataset)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+
+    benchmarks = {}
+    if filepath.exists():
+        with open(filepath, "r") as f:
+            existing = json.load(f)
+        if "models" in existing:
+            benchmarks = existing
+        else:
+            benchmarks = {"models": [existing]}
+
+    models = benchmarks.setdefault("models", [])
+    models[:] = [item for item in models if item.get("model") != model_name]
+    models.append(benchmark)
+
+    # Keep the latest result at the top level for existing consumers.
+    benchmarks.update(benchmark)
+    
+    with open(filepath, "w") as f:
+        json.dump(benchmarks, f, indent=2)
+    
+    return filepath
+
+
+def write_benchmarks_csv(dataset: str, model_name: str, experiment_version: str,
+                         cv_stats: dict, test_metrics: dict):
+    """Write benchmark CSV file (summary row)."""
+    filepath = get_benchmarks_csv_path(dataset)
+    filepath.parent.mkdir(parents=True, exist_ok=True)
+    
+    row = {
+        "dataset": dataset,
+        "model": model_name,
+        "experiment_version": experiment_version,
+        "timestamp": datetime.now().isoformat(),
+        "cv_accuracy_mean": cv_stats.get("accuracy_mean"),
+        "cv_accuracy_std": cv_stats.get("accuracy_std"),
+        "cv_f1_mean": cv_stats.get("f1_mean"),
+        "cv_f1_std": cv_stats.get("f1_std"),
+        "test_accuracy": test_metrics.get("accuracy"),
+        "test_precision": test_metrics.get("precision"),
+        "test_recall": test_metrics.get("recall"),
+        "test_f1": test_metrics.get("f1"),
+        "test_roc_auc": test_metrics.get("roc_auc"),
+        "test_tp": test_metrics.get("tp"),
+        "test_tn": test_metrics.get("tn"),
+        "test_fp": test_metrics.get("fp"),
+        "test_fn": test_metrics.get("fn")
+    }
+    
+    file_exists = filepath.exists()
+    
+    with open(filepath, "a", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=row.keys())
+        if not file_exists:
+            writer.writeheader()
+        writer.writerow(row)
+    
+    return filepath
+
+
+def evaluate_model(dataset: str, model_name: str, experiment_version: str,
+                   X_test, y_test, y_pred, y_score=None, cv_results=None):
+    """
+    Main evaluation pipeline.
+    
+    Args:
+        dataset: isot or liar
+        model_name: Model identifier
+        experiment_version: Version string
+        X_test: Test texts
+        y_test: True labels
+        y_pred: Predicted labels
+        y_score: Prediction probabilities/scores
+        cv_results: List of fold metrics from CV
+    """
+    test_metrics = calculate_metrics(y_test, y_pred, y_score)
+    
+    cv_stats = {}
+    if cv_results:
+        cv_stats = calculate_cv_statistics(cv_results)
+    
+    config = {
+        "model": model_name,
+        "dataset": dataset,
+        "note": "Training pending - config to be determined"
+    }
+    
+    predictions_dir = get_predictions_dir(dataset)
+    save_predictions(dataset, model_name, experiment_version, X_test, y_test, 
+                     y_pred, y_score if y_score is not None else [None]*len(y_pred), predictions_dir)
+    
+    write_benchmarks_json(dataset, model_name, experiment_version, 
+                          cv_results or [], cv_stats, test_metrics, config)
+    write_benchmarks_csv(dataset, model_name, experiment_version, 
+                         cv_stats, test_metrics)
+    
+    return test_metrics, cv_stats
+

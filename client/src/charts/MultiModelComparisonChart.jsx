@@ -27,7 +27,7 @@ export const MultiModelComparisonChart = ({ models = [], ensembles = null, heigh
       .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-    // Prepare combined data list: 6 models + 2 ensembles
+    // Prepare combined data list: 4 trained models + 2 ensembles
     const items = [];
     
     if (models && models.length > 0) {

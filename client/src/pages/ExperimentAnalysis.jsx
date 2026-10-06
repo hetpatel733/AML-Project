@@ -30,7 +30,7 @@ export const ExperimentAnalysis = () => {
       setLoading(true);
       try {
         const response = await getExperimentMetadata(selectedDataset);
-        if (response?.data && (response.data.models || response.data.model_metrics)) {
+        if (response?.data?.dataset && Array.isArray(response.data.models)) {
           setMetadata(response.data);
         } else {
           setMetadata(null);
@@ -137,7 +137,7 @@ export const ExperimentAnalysis = () => {
             <Layers size={16} className="text-primary" />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f8fafc' }}>
-            {(metadata.dataset_metadata?.train_samples ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
+            {(metadata.splits?.training?.count ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
             Used for model training and feature extraction.
@@ -152,7 +152,7 @@ export const ExperimentAnalysis = () => {
             <Scale size={16} style={{ color: '#a78bfa' }} />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f8fafc' }}>
-            {(metadata.dataset_metadata?.val_samples ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
+            {(metadata.splits?.validation?.count ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
             Used for ensemble weighting and tuning.
@@ -167,7 +167,7 @@ export const ExperimentAnalysis = () => {
             <Award size={16} style={{ color: '#34d399' }} />
           </div>
           <div style={{ fontSize: '24px', fontWeight: 800, color: '#f8fafc' }}>
-            {(metadata.dataset_metadata?.test_samples ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
+            {(metadata.splits?.testing?.count ?? 'N/A').toLocaleString()} <span style={{ fontSize: '13px', fontWeight: 400, color: '#94a3b8' }}>articles</span>
           </div>
           <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>
             Unbiased final empirical benchmark & ROC-AUC verification.
@@ -180,7 +180,7 @@ export const ExperimentAnalysis = () => {
           <div>
             <h3 style={{ margin: 0, fontSize: '18px', color: '#f8fafc' }}>Experiment Validity</h3>
             <p style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: '13px' }}>
-              Version: {metadata.experiment?.version || 'Unversioned'} | Seed: {metadata.dataset_metadata?.random_state ?? 'N/A'} | Trained: {metadata.experiment?.trained_at_utc || 'N/A'}
+              Dataset: {metadata.dataset?.name || 'N/A'} | Version: {metadata.experiment?.version || 'Unversioned'} | Seed: {metadata.experiment?.randomSeed ?? 'N/A'} | Trained: {metadata.experiment?.trainingTimestamp || 'N/A'}
             </p>
           </div>
           <div style={{ minWidth: '280px' }}>
@@ -192,7 +192,7 @@ export const ExperimentAnalysis = () => {
           </div>
         </div>
         <div style={{ marginTop: '16px', color: '#cbd5e1', fontSize: '13px' }}>
-          Records after preprocessing: {metadata.data_quality?.processed_rows ?? 'N/A'} | Duplicates removed: {metadata.data_quality?.duplicate_rows_removed ?? 'N/A'} | Missing titles: {metadata.data_quality?.missing_title_count ?? 'N/A'} | Missing text: {metadata.data_quality?.missing_text_count ?? 'N/A'}
+          Records: {metadata.dataset?.totalRecords ?? 'N/A'} | Classes: {metadata.dataset?.classes?.join(', ') || 'N/A'} | Preprocessing: {metadata.dataset?.preprocessing?.textCleaning || 'N/A'}
         </div>
       </div>
 
@@ -220,18 +220,18 @@ export const ExperimentAnalysis = () => {
               </tr>
             </thead>
             <tbody>
-              {Object.entries(metadata?.models || metadata?.model_metrics || {}).map(([key, model]) => {
-                const modelName = model.name || model.model_name || model.model || key;
-                const vectorizerLabel = model.feature_type === 'tfidf' || modelName.includes('tfidf') ? 'TF-IDF (1,2-gram)' : 'Bag of Words (1,2-gram)';
-                const weight = model.ensemble_weight_normalized ?? metadata?.ensemble_weights?.normalized_weights?.[key] ?? metadata?.validation_weights?.[key] ?? (1 / 6);
-                const acc = model.test_metrics?.accuracy ?? model.test_metrics?.acc ?? 0.99;
-                const prec = model.test_metrics?.precision ?? 0.99;
-                const rec = model.test_metrics?.recall ?? 0.99;
-                const f1 = model.test_metrics?.f1_score ?? model.test_metrics?.f1 ?? 0.99;
-                const roc = model.test_metrics?.roc_auc ?? model.test_metrics?.rocAuc ?? 0.99;
+              {(metadata.models || []).map((model) => {
+                const modelName = model.name || model.id;
+                const vectorizerLabel = model.representation || 'Unavailable';
+                const acc = model.metrics?.accuracy;
+                const prec = model.metrics?.precision;
+                const rec = model.metrics?.recall;
+                const f1 = model.metrics?.f1;
+                const roc = model.metrics?.rocAuc;
+                const formatMetric = value => typeof value === 'number' ? `${(value * 100).toFixed(2)}%` : 'Unavailable';
 
                 return (
-                  <tr key={key} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                  <tr key={model.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
                     <td style={{ padding: '12px 14px', fontWeight: 600, color: '#f8fafc' }}>
                       {modelName}
                     </td>
@@ -239,29 +239,29 @@ export const ExperimentAnalysis = () => {
                       {vectorizerLabel}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#c4b5fd', fontWeight: 600 }}>
-                      {(weight * 100).toFixed(1)}%
+                      {model.status === 'trained' ? 'CV-selected' : 'Unavailable'}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#38bdf8', fontWeight: 600 }}>
-                      {(acc * 100).toFixed(2)}%
+                      {formatMetric(acc)}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#34d399' }}>
-                      {(prec * 100).toFixed(2)}%
+                      {formatMetric(prec)}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#a78bfa' }}>
-                      {(rec * 100).toFixed(2)}%
+                      {formatMetric(rec)}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#f59e0b', fontWeight: 700 }}>
-                      {(f1 * 100).toFixed(2)}%
+                      {formatMetric(f1)}
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#ec4899', fontWeight: 700 }}>
-                      {(roc * 100).toFixed(2)}%
+                      {formatMetric(roc)}
                     </td>
                   </tr>
                 );
               })}
 
               {/* Ensemble Rows */}
-              {(metadata?.ensembles?.validation_weighted || metadata?.ensembles?.weighted_soft_ensemble) && (() => {
+              {metadata?.ensemble?.status === 'trained' && (() => {
                 const softEns = metadata?.ensembles?.validation_weighted || metadata?.ensembles?.weighted_soft_ensemble;
                 return (
                   <tr style={{ background: 'rgba(139, 92, 246, 0.1)', borderTop: '2px solid rgba(139, 92, 246, 0.4)' }}>

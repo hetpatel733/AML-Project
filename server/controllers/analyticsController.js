@@ -1,232 +1,172 @@
-import { Prediction } from '../models/Prediction.js';
-import { sendSuccess } from '../utils/response.js';
+import { Prediction } from "../models/Prediction.js";
+import { sendSuccess } from "../utils/response.js";
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const EXPERIMENT_PATH = path.resolve(__dirname, '../../ml/models/model_config.json');
 
-const loadExperiment = () => {
+const loadExperiment = (dataset = "isot") => {
   try {
-    return JSON.parse(fs.readFileSync(EXPERIMENT_PATH, 'utf8'));
+    const configPath = path.resolve(__dirname, `../../ml/results/${dataset}/benchmark.json`);
+    if (fs.existsSync(configPath)) {
+      return JSON.parse(fs.readFileSync(configPath, "utf8"));
+    }
+    return null;
   } catch (error) {
-    console.warn('[Experiment] Could not load model_config.json:', error.message);
+    console.warn(`[Experiment] Could not load benchmark.json for dataset ${dataset}:`, error.message);
     return null;
   }
 };
 
-const toBenchmarkRows = (experiment) => Object.values(experiment?.models || {}).map((model) => ({
-  model: model.name,
-  accuracy: model.test_metrics?.accuracy,
-  precision: model.test_metrics?.precision,
-  recall: model.test_metrics?.recall,
-  f1Score: model.test_metrics?.f1_score,
-  rocAuc: model.test_metrics?.roc_auc,
-  cvMeanF1: model.cv_metrics?.f1_mean ?? model.cv_f1_mean,
-  cvStdF1: model.cv_metrics?.f1_std ?? model.cv_f1_std,
-  externalF1: model.external_metrics?.f1_score ?? null,
-  description: model.description,
-  featureType: model.feature_type
-}));
+const toBenchmarkRows = (dataset) => {
+  const experiment = loadExperiment(dataset);
+  return (experiment?.models || []).map(model => ({
+    model: model.name,
+    modelId: model.id,
+    accuracy: model.metrics?.accuracy,
+    precision: model.metrics?.precision,
+    recall: model.metrics?.recall,
+    f1Score: model.metrics?.f1,
+    rocAuc: model.metrics?.rocAuc,
+    cvMeanF1: model.crossValidation?.mean?.f1,
+    cvStdF1: model.crossValidation?.std?.f1,
+    description: model.name,
+    featureType: model.representation
+  }));
+};
 
-/**
- * @desc    Get aggregate analytics, prediction counts, confidence metrics, and daily trends
- * @route   GET /api/analytics
- * @access  Public
- */
 export const getAnalytics = async (req, res, next) => {
   try {
-    const experiment = loadExperiment();
-    const modelPerformance = toBenchmarkRows(experiment);
+    const dataset = req.query.dataset || "isot";
+    const modelPerformance = toBenchmarkRows(dataset);
     let totalPredictions = 0;
     let fakeCount = 0;
     let realCount = 0;
     let avgConfidence = 0;
     let trendData = [];
-    let confidenceDistribution = [
-      { range: '50-60%', count: 0, label: 'Low' },
-      { range: '60-70%', count: 0, label: 'Moderate' },
-      { range: '70-80%', count: 0, label: 'High' },
-      { range: '80-90%', count: 0, label: 'Very High' },
-      { range: '90-100%', count: 0, label: 'Extremely High' }
-    ];
+    let confidenceDistribution = {
+      "90-100%": 0,
+      "80-90%": 0,
+      "70-80%": 0,
+      "60-70%": 0,
+      "50-60%": 0
+    };
 
     try {
-      totalPredictions = await Prediction.countDocuments();
-      fakeCount = await Prediction.countDocuments({ prediction: 'FAKE' });
-      realCount = await Prediction.countDocuments({ prediction: 'REAL' });
-
-      // Aggregate average confidence
-      const avgResult = await Prediction.aggregate([
-        {
-          $group: {
-            _id: null,
-            avgConf: { $avg: '$confidence' }
-          }
-        }
-      ]);
-      if (avgResult.length > 0 && avgResult[0].avgConf) {
-        avgConfidence = Number(avgResult[0].avgConf.toFixed(3));
-      }
-
-      // Group predictions by day for the last 7 days
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const dailyAgg = await Prediction.aggregate([
-        { $match: { createdAt: { $gte: sevenDaysAgo } } },
-        {
-          $group: {
-            _id: {
-              date: { $dateToString: { format: '%b %d', date: '$createdAt' } },
-              prediction: '$prediction'
-            },
-            count: { $sum: 1 }
-          }
-        }
-      ]);
-
-      // Map daily aggregation into structured chart format
-      const dateMap = {};
-      dailyAgg.forEach(item => {
-        const dateKey = item._id.date;
-        if (!dateMap[dateKey]) {
-          dateMap[dateKey] = { date: dateKey, fake: 0, real: 0, total: 0 };
-        }
-        if (item._id.prediction === 'FAKE') dateMap[dateKey].fake += item.count;
-        if (item._id.prediction === 'REAL') dateMap[dateKey].real += item.count;
-        dateMap[dateKey].total += item.count;
-      });
-
-      trendData = Object.values(dateMap);
-
-      // Bucket confidence scores
-      const allPredictions = await Prediction.find({}, 'confidence').lean();
-      allPredictions.forEach(p => {
-        const c = p.confidence <= 1 ? p.confidence * 100 : p.confidence;
-        if (c >= 50 && c < 60) confidenceDistribution[0].count++;
-        else if (c >= 60 && c < 70) confidenceDistribution[1].count++;
-        else if (c >= 70 && c < 80) confidenceDistribution[2].count++;
-        else if (c >= 80 && c < 90) confidenceDistribution[3].count++;
-        else if (c >= 90) confidenceDistribution[4].count++;
-      });
-    } catch (dbErr) {
-      console.warn('[Database Notice] Database aggregation unavailable. Using initial metrics structure.');
-    }
-
-    const fakePercentage = totalPredictions > 0
-      ? Number(((fakeCount / totalPredictions) * 100).toFixed(1))
-      : 0;
-
-    const realPercentage = totalPredictions > 0
-      ? Number(((realCount / totalPredictions) * 100).toFixed(1))
-      : 0;
-
-    const championMetrics = experiment?.champion_model?.test_metrics
-      || Object.values(experiment?.models || {})[0]?.test_metrics;
-    const championMatrix = championMetrics?.confusion_matrix;
-    const confusionMatrix = championMatrix ? {
-      truePositive: championMatrix[1][1],
-      falsePositive: championMatrix[0][1],
-      trueNegative: championMatrix[0][0],
-      falseNegative: championMatrix[1][0],
-      totalSamples: championMatrix.flat().reduce((sum, value) => sum + value, 0)
-    } : null;
-
-    return sendSuccess(res, {
-      totalPredictions,
-      fakeCount,
-      realCount,
-      fakePercentage,
-      realPercentage,
-      averageConfidence: avgConfidence,
-      predictionsPerDay: trendData,
-      trendData,
-      confidenceDistribution,
-      confusionMatrix,
-      modelPerformance,
-      experiment
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * @desc    Get aggregate stats specifically for dashboard cards
- * @route   GET /api/predictions/stats
- * @access  Public
- */
-export const getPredictionStats = async (req, res, next) => {
-  try {
-    let totalPredictions = 0;
-    let fakeCount = 0;
-    let realCount = 0;
-    let avgConfidence = 0;
-    let recentPredictions = [];
-
-    try {
-      [totalPredictions, fakeCount, realCount, recentPredictions] = await Promise.all([
-        Prediction.countDocuments(),
-        Prediction.countDocuments({ prediction: 'FAKE' }),
-        Prediction.countDocuments({ prediction: 'REAL' }),
-        Prediction.find().sort({ createdAt: -1 }).limit(5).lean()
-      ]);
-
-      const avgResult = await Prediction.aggregate([
-        { $group: { _id: null, avgConf: { $avg: '$confidence' } } }
-      ]);
-      if (avgResult.length > 0 && avgResult[0].avgConf) {
-        avgConfidence = Number(avgResult[0].avgConf.toFixed(3));
+      const predictions = await Prediction.find({ dataset });
+      totalPredictions = predictions.length;
+      
+      if (totalPredictions > 0) {
+        let totalConf = 0;
+        
+        predictions.forEach(p => {
+          if (p.prediction === "FAKE") fakeCount++;
+          else realCount++;
+          
+          totalConf += p.confidence;
+          
+          const conf = p.confidence * 100;
+          if (conf >= 90) confidenceDistribution["90-100%"]++;
+          else if (conf >= 80) confidenceDistribution["80-90%"]++;
+          else if (conf >= 70) confidenceDistribution["70-80%"]++;
+          else if (conf >= 60) confidenceDistribution["60-70%"]++;
+          else confidenceDistribution["50-60%"]++;
+        });
+        
+        avgConfidence = totalConf / totalPredictions;
+        
+        // Group by date for trend
+        const grouped = {};
+        predictions.forEach(p => {
+          const date = p.createdAt.toISOString().split("T")[0];
+          if (!grouped[date]) grouped[date] = { date, fake: 0, real: 0, total: 0 };
+          grouped[date].total++;
+          if (p.prediction === "FAKE") grouped[date].fake++;
+          else grouped[date].real++;
+        });
+        
+        trendData = Object.values(grouped).sort((a, b) => a.date.localeCompare(b.date)).slice(-30);
       }
     } catch (dbErr) {
-      console.warn('[Database Notice] Database query fallback for stats.');
+      console.warn("[Analytics] DB error:", dbErr.message);
     }
 
-    const fakePercentage = totalPredictions > 0 ? Number(((fakeCount / totalPredictions) * 100).toFixed(1)) : 0;
-    const realPercentage = totalPredictions > 0 ? Number(((realCount / totalPredictions) * 100).toFixed(1)) : 0;
+    // Expose confusion matrices for every trained benchmark model.
+    const experiment = loadExperiment(dataset);
+    const confusionMatrices = (experiment?.models || [])
+      .filter(model => model.status === "trained" && model.confusionMatrix)
+      .map(model => ({
+        modelId: model.id,
+        model: model.name,
+        ...model.confusionMatrix,
+        totalSamples: ["truePositive", "falsePositive", "trueNegative", "falseNegative"]
+          .reduce((sum, key) => sum + (model.confusionMatrix[key] || 0), 0)
+      }));
 
-    return sendSuccess(res, {
+    // Keep the first matrix as a backward-compatible aggregate field.
+    let confusionMatrix = {
+      truePositive: 0,
+      falsePositive: 0,
+      trueNegative: 0,
+      falseNegative: 0,
+      totalSamples: 0
+    };
+    
+    if (confusionMatrices.length > 0) {
+      confusionMatrix = confusionMatrices[0];
+    }
+
+    sendSuccess(res, {
       totalPredictions,
       fakeCount,
       realCount,
       avgConfidence,
-      fakePercentage,
-      realPercentage,
-      recentPredictions: recentPredictions.map(p => ({ id: p._id, ...p }))
+      trendData,
+      confidenceDistribution,
+      modelPerformance,
+      confusionMatrices,
+      confusionMatrix
     });
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * @desc    Get model performance benchmarks
- * @route   GET /api/model-performance (and /api/models/performance)
- * @access  Public
- */
-export const getModelPerformance = async (req, res, next) => {
+export const getPredictionStats = async (req, res, next) => {
   try {
-    return sendSuccess(res, toBenchmarkRows(loadExperiment()));
+    const dataset = req.query.dataset || "isot";
+    const totalPredictions = await Prediction.countDocuments({ dataset });
+    const fakeCount = await Prediction.countDocuments({ dataset, prediction: "FAKE" });
+    const realCount = await Prediction.countDocuments({ dataset, prediction: "REAL" });
+    
+    sendSuccess(res, {
+      totalPredictions,
+      fakeCount,
+      realCount
+    });
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * @desc    API Health Check endpoint
- * @route   GET /api/health
- * @access  Public
- */
-export const getHealth = async (req, res) => {
-  return res.status(200).json({
+export const getModelPerformance = async (req, res, next) => {
+  try {
+    const dataset = req.query.dataset || "isot";
+    const modelPerformance = toBenchmarkRows(dataset);
+    sendSuccess(res, modelPerformance);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getHealth = (req, res) => {
+  res.status(200).json({
     success: true,
-    message: 'API is running',
-    timestamp: new Date().toISOString(),
-    service: 'Fake News Detection Backend',
-    environment: process.env.NODE_ENV || 'development'
+    status: 'UP',
+    timestamp: new Date().toISOString()
   });
 };
+

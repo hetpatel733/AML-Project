@@ -165,7 +165,7 @@ export const History = () => {
               }}
             >
               <option value="ALL">All Vote Profiles</option>
-              <option value="UNANIMOUS">Unanimous (6/6 Agree)</option>
+              <option value="UNANIMOUS">Unanimous (4/4 Agree)</option>
               <option value="SPLIT">Split Decisions</option>
             </select>
           </div>

@@ -1,0 +1,808 @@
+{
+  "dataset": {
+    "id": "liar",
+    "name": "LIAR",
+    "description": "Binary fake-news classification dataset.",
+    "totalRecords": 12791,
+    "classes": [
+      "FAKE",
+      "REAL"
+    ],
+    "classDistribution": {
+      "FAKE": 5657,
+      "REAL": 7134
+    },
+    "labelMapping": {
+      "false": 0,
+      "barely-true": 0,
+      "pants-fire": 0,
+      "true": 1,
+      "mostly-true": 1,
+      "half-true": 1
+    },
+    "preprocessing": {
+      "textCleaning": "lowercase, URL/HTML/punctuation/number removal, stopword removal",
+      "tfidf": {
+        "maxFeatures": 5000,
+        "ngramRange": [
+          1,
+          1
+        ]
+      }
+    }
+  },
+  "experiment": {
+    "version": "v2",
+    "trainingTimestamp": "2026-10-06T06:52:18Z",
+    "randomSeed": 42,
+    "crossValidation": {
+      "folds": 5,
+      "strategy": "StratifiedKFold"
+    }
+  },
+  "splits": {
+    "training": {
+      "count": 10240,
+      "percentage": 80.05628957860996,
+      "classDistribution": {
+        "FAKE": 4488,
+        "REAL": 5752
+      }
+    },
+    "validation": {
+      "count": 1284,
+      "percentage": 10.03830818544289,
+      "classDistribution": {
+        "FAKE": 616,
+        "REAL": 668
+      }
+    },
+    "testing": {
+      "count": 1267,
+      "percentage": 9.90540223594715,
+      "classDistribution": {
+        "FAKE": 553,
+        "REAL": 714
+      }
+    }
+  },
+  "models": [
+    {
+      "id": "tfidf_pac",
+      "name": "TF-IDF + Passive Aggressive Classifier",
+      "type": "classical_ml",
+      "representation": "TF-IDF",
+      "status": "trained",
+      "training": {
+        "count": 10240,
+        "percentage": 80.05628957860996
+      },
+      "crossValidation": {
+        "folds": [
+          {
+            "accuracy": 0.56201171875,
+            "precision": 0.6124444444444445,
+            "recall": 0.5991304347826087,
+            "f1": 0.6057142857142858,
+            "tp": 689,
+            "tn": 462,
+            "fp": 436,
+            "fn": 461,
+            "roc_auc": 0.5692514767115329
+          },
+          {
+            "accuracy": 0.548828125,
+            "precision": 0.5992970123022847,
+            "recall": 0.5930434782608696,
+            "f1": 0.5961538461538461,
+            "tp": 682,
+            "tn": 442,
+            "fp": 456,
+            "fn": 468,
+            "roc_auc": 0.5627476517865789
+          },
+          {
+            "accuracy": 0.5517578125,
+            "precision": 0.5986394557823129,
+            "recall": 0.6121739130434782,
+            "f1": 0.6053310404127257,
+            "tp": 704,
+            "tn": 426,
+            "fp": 472,
+            "fn": 446,
+            "roc_auc": 0.5640834705141861
+          },
+          {
+            "accuracy": 0.5517578125,
+            "precision": 0.6030061892130858,
+            "recall": 0.5925282363162467,
+            "f1": 0.5977212971078002,
+            "tp": 682,
+            "tn": 448,
+            "fp": 449,
+            "fn": 469,
+            "roc_auc": 0.5707857158769409
+          },
+          {
+            "accuracy": 0.5556640625,
+            "precision": 0.6056091148115688,
+            "recall": 0.6003475238922676,
+            "f1": 0.6029668411867365,
+            "tp": 691,
+            "tn": 447,
+            "fp": 450,
+            "fn": 460,
+            "roc_auc": 0.5761971316687443
+          }
+        ],
+        "mean": {
+          "accuracy": 0.55400390625,
+          "precision": 0.6037992433107393,
+          "recall": 0.5994447172590942,
+          "f1": 0.6015774621150789,
+          "tp": 689.6,
+          "tn": 445.0,
+          "fp": 452.6,
+          "fn": 460.8,
+          "roc_auc": 0.5686130893115966
+        },
+        "std": {
+          "accuracy": 0.004555431167847891,
+          "precision": 0.005010739739510145,
+          "recall": 0.0070959118928333965,
+          "f1": 0.003934937163172475,
+          "tp": 8.06473806146238,
+          "tn": 11.593101396951552,
+          "fp": 11.689311356961966,
+          "fn": 8.23164625090267,
+          "roc_auc": 0.004849048297338113
+        }
+      },
+      "validation": {
+        "count": 1284,
+        "percentage": 10.03830818544289
+      },
+      "test": {
+        "count": 1267,
+        "percentage": 9.90540223594715,
+        "metrics": {
+          "accuracy": 0.580110497237569,
+          "precision": 0.6210106382978723,
+          "recall": 0.65406162464986,
+          "f1": 0.6371077762619373,
+          "rocAuc": 0.5746121233303447,
+          "tp": 467,
+          "tn": 268,
+          "fp": 285,
+          "fn": 247
+        }
+      },
+      "confusionMatrix": {
+        "labels": [
+          "FAKE",
+          "REAL"
+        ],
+        "matrix": [
+          [
+            268,
+            285
+          ],
+          [
+            247,
+            467
+          ]
+        ],
+        "truePositive": 467,
+        "trueNegative": 268,
+        "falsePositive": 285,
+        "falseNegative": 247
+      },
+      "metrics": {
+        "accuracy": 0.580110497237569,
+        "precision": 0.6210106382978723,
+        "recall": 0.65406162464986,
+        "f1": 0.6371077762619373,
+        "rocAuc": 0.5746121233303447,
+        "tp": 467,
+        "tn": 268,
+        "fp": 285,
+        "fn": 247
+      },
+      "hyperparameters": {
+        "max_features": 5000,
+        "ngram_range": [
+          1,
+          1
+        ],
+        "random_state": 42
+      },
+      "trainingTime": 0.6210875511169434,
+      "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\tfidf_pac",
+      "predictionArchive": "ml/results/liar/predictions/v1_tfidf_pac_predictions.jsonl",
+      "trainingHistory": null
+    },
+    {
+      "id": "tfidf_random_forest",
+      "name": "TF-IDF + Random Forest",
+      "type": "classical_ml",
+      "representation": "TF-IDF",
+      "status": "trained",
+      "training": {
+        "count": 10240,
+        "percentage": 80.05628957860996
+      },
+      "crossValidation": {
+        "folds": [
+          {
+            "accuracy": 0.59423828125,
+            "precision": 0.6154960173787111,
+            "recall": 0.7391304347826086,
+            "f1": 0.6716712761754248,
+            "tp": 850,
+            "tn": 367,
+            "fp": 531,
+            "fn": 300,
+            "roc_auc": 0.5993425002420839
+          },
+          {
+            "accuracy": 0.6123046875,
+            "precision": 0.6246498599439776,
+            "recall": 0.7756521739130435,
+            "f1": 0.6920093095422808,
+            "tp": 892,
+            "tn": 362,
+            "fp": 536,
+            "fn": 258,
+            "roc_auc": 0.6255437203447274
+          },
+          {
+            "accuracy": 0.5966796875,
+            "precision": 0.6203566121842496,
+            "recall": 0.7260869565217392,
+            "f1": 0.6690705128205128,
+            "tp": 835,
+            "tn": 387,
+            "fp": 511,
+            "fn": 315,
+            "roc_auc": 0.614849908008134
+          },
+          {
+            "accuracy": 0.6064453125,
+            "precision": 0.6220806794055201,
+            "recall": 0.7636837532580365,
+            "f1": 0.6856474258970359,
+            "tp": 879,
+            "tn": 363,
+            "fp": 534,
+            "fn": 272,
+            "roc_auc": 0.6145443785492137
+          },
+          {
+            "accuracy": 0.623046875,
+            "precision": 0.6339222614840989,
+            "recall": 0.7793223284100782,
+            "f1": 0.6991426344505066,
+            "tp": 897,
+            "tn": 379,
+            "fp": 518,
+            "fn": 254,
+            "roc_auc": 0.6460544705926794
+          }
+        ],
+        "mean": {
+          "accuracy": 0.60654296875,
+          "precision": 0.6233010860793116,
+          "recall": 0.7567751293771012,
+          "f1": 0.6835082317771521,
+          "tp": 870.6,
+          "tn": 371.6,
+          "fp": 526.0,
+          "fn": 279.8,
+          "roc_auc": 0.6200669955473677
+        },
+        "std": {
+          "accuracy": 0.0105287749780809,
+          "precision": 0.006094374033590245,
+          "recall": 0.02081128193603822,
+          "f1": 0.011574456947883751,
+          "tp": 24.154502685834785,
+          "tn": 9.789790600416334,
+          "fp": 9.777525249264253,
+          "fn": 23.86964599653711,
+          "roc_auc": 0.015443868558724328
+        }
+      },
+      "validation": {
+        "count": 1284,
+        "percentage": 10.03830818544289
+      },
+      "test": {
+        "count": 1267,
+        "percentage": 9.90540223594715,
+        "metrics": {
+          "accuracy": 0.6132596685082873,
+          "precision": 0.6305361305361306,
+          "recall": 0.757703081232493,
+          "f1": 0.688295165394402,
+          "rocAuc": 0.6323478758592044,
+          "tp": 541,
+          "tn": 236,
+          "fp": 317,
+          "fn": 173
+        }
+      },
+      "confusionMatrix": {
+        "labels": [
+          "FAKE",
+          "REAL"
+        ],
+        "matrix": [
+          [
+            236,
+            317
+          ],
+          [
+            173,
+            541
+          ]
+        ],
+        "truePositive": 541,
+        "trueNegative": 236,
+        "falsePositive": 317,
+        "falseNegative": 173
+      },
+      "metrics": {
+        "accuracy": 0.6132596685082873,
+        "precision": 0.6305361305361306,
+        "recall": 0.757703081232493,
+        "f1": 0.688295165394402,
+        "rocAuc": 0.6323478758592044,
+        "tp": 541,
+        "tn": 236,
+        "fp": 317,
+        "fn": 173
+      },
+      "hyperparameters": {
+        "max_features": 5000,
+        "ngram_range": [
+          1,
+          1
+        ],
+        "random_state": 42
+      },
+      "trainingTime": 29.36050033569336,
+      "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\tfidf_random_forest",
+      "predictionArchive": "ml/results/liar/predictions/v1_tfidf_random_forest_predictions.jsonl",
+      "trainingHistory": null
+    },
+    {
+      "id": "tfidf_logistic_regression",
+      "name": "TF-IDF + Logistic Regression",
+      "type": "classical_ml",
+      "representation": "TF-IDF",
+      "status": "trained",
+      "training": {
+        "count": 10240,
+        "percentage": 80.05628957860996
+      },
+      "crossValidation": {
+        "folds": [
+          {
+            "accuracy": 0.58935546875,
+            "precision": 0.6131868131868132,
+            "recall": 0.7278260869565217,
+            "f1": 0.6656063618290259,
+            "tp": 837,
+            "tn": 370,
+            "fp": 528,
+            "fn": 313,
+            "roc_auc": 0.6170359252445047
+          },
+          {
+            "accuracy": 0.60009765625,
+            "precision": 0.6217807211184695,
+            "recall": 0.7347826086956522,
+            "f1": 0.6735751295336787,
+            "tp": 845,
+            "tn": 384,
+            "fp": 514,
+            "fn": 305,
+            "roc_auc": 0.6375263871405055
+          },
+          {
+            "accuracy": 0.5888671875,
+            "precision": 0.6134020618556701,
+            "recall": 0.7243478260869565,
+            "f1": 0.664274322169059,
+            "tp": 833,
+            "tn": 373,
+            "fp": 525,
+            "fn": 317,
+            "roc_auc": 0.6102701655853588
+          },
+          {
+            "accuracy": 0.60107421875,
+            "precision": 0.6206647398843931,
+            "recall": 0.7463075586446568,
+            "f1": 0.6777120315581854,
+            "tp": 859,
+            "tn": 372,
+            "fp": 525,
+            "fn": 292,
+            "roc_auc": 0.6363183776019495
+          },
+          {
+            "accuracy": 0.6123046875,
+            "precision": 0.6305779078273592,
+            "recall": 0.7489139878366637,
+            "f1": 0.6846703733121525,
+            "tp": 862,
+            "tn": 392,
+            "fp": 505,
+            "fn": 289,
+            "roc_auc": 0.6650297787683048
+          }
+        ],
+        "mean": {
+          "accuracy": 0.59833984375,
+          "precision": 0.6199224487745411,
+          "recall": 0.7364356136440902,
+          "f1": 0.6731676436804203,
+          "tp": 847.2,
+          "tn": 378.2,
+          "fp": 519.4,
+          "fn": 303.2,
+          "roc_auc": 0.6332361268681247
+        },
+        "std": {
+          "accuracy": 0.00867218291964583,
+          "precision": 0.006409792698125391,
+          "recall": 0.009758443561900728,
+          "f1": 0.007607817632219931,
+          "tp": 11.565465835840769,
+          "tn": 8.44748483277715,
+          "fp": 8.63944442658207,
+          "fn": 11.106754701531855,
+          "roc_auc": 0.01912393690759411
+        }
+      },
+      "validation": {
+        "count": 1284,
+        "percentage": 10.03830818544289
+      },
+      "test": {
+        "count": 1267,
+        "percentage": 9.90540223594715,
+        "metrics": {
+          "accuracy": 0.6203630623520127,
+          "precision": 0.6398559423769508,
+          "recall": 0.7464985994397759,
+          "f1": 0.6890756302521008,
+          "rocAuc": 0.6391290693492586,
+          "tp": 533,
+          "tn": 253,
+          "fp": 300,
+          "fn": 181
+        }
+      },
+      "confusionMatrix": {
+        "labels": [
+          "FAKE",
+          "REAL"
+        ],
+        "matrix": [
+          [
+            253,
+            300
+          ],
+          [
+            181,
+            533
+          ]
+        ],
+        "truePositive": 533,
+        "trueNegative": 253,
+        "falsePositive": 300,
+        "falseNegative": 181
+      },
+      "metrics": {
+        "accuracy": 0.6203630623520127,
+        "precision": 0.6398559423769508,
+        "recall": 0.7464985994397759,
+        "f1": 0.6890756302521008,
+        "rocAuc": 0.6391290693492586,
+        "tp": 533,
+        "tn": 253,
+        "fp": 300,
+        "fn": 181
+      },
+      "hyperparameters": {
+        "max_features": 5000,
+        "ngram_range": [
+          1,
+          1
+        ],
+        "random_state": 42
+      },
+      "trainingTime": 0.5382425785064697,
+      "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\tfidf_logistic_regression",
+      "predictionArchive": "ml/results/liar/predictions/v1_tfidf_logistic_regression_predictions.jsonl",
+      "trainingHistory": null
+    },
+    {
+      "id": "glove_cnn_bilstm",
+      "name": "GloVe + CNN-BiLSTM + Dense Softmax",
+      "type": "deep_learning",
+      "representation": "GloVe",
+      "status": "trained",
+      "training": {
+        "count": 10240,
+        "percentage": 80.05628957860996
+      },
+      "crossValidation": {
+        "folds": [
+          {
+            "accuracy": 0.6015625,
+            "precision": 0.6171107994389902,
+            "recall": 0.7652173913043478,
+            "f1": 0.6832298136645962,
+            "tp": 880,
+            "tn": 352,
+            "fp": 546,
+            "fn": 270,
+            "roc_auc": 0.6283470514186114
+          },
+          {
+            "accuracy": 0.59228515625,
+            "precision": 0.615553925165077,
+            "recall": 0.7295652173913043,
+            "f1": 0.6677278153601274,
+            "tp": 839,
+            "tn": 374,
+            "fp": 524,
+            "fn": 311,
+            "roc_auc": 0.6230488041057421
+          },
+          {
+            "accuracy": 0.587890625,
+            "precision": 0.6088193456614509,
+            "recall": 0.7443478260869565,
+            "f1": 0.6697965571205008,
+            "tp": 856,
+            "tn": 348,
+            "fp": 550,
+            "fn": 294,
+            "roc_auc": 0.6164268422581582
+          },
+          {
+            "accuracy": 0.60693359375,
+            "precision": 0.639967637540453,
+            "recall": 0.687228496959166,
+            "f1": 0.6627565982404692,
+            "tp": 791,
+            "tn": 452,
+            "fp": 445,
+            "fn": 360,
+            "roc_auc": 0.6381460743263334
+          },
+          {
+            "accuracy": 0.615234375,
+            "precision": 0.6228842247799594,
+            "recall": 0.7993049522154648,
+            "f1": 0.700152207001522,
+            "tp": 920,
+            "tn": 340,
+            "fp": 557,
+            "fn": 231,
+            "roc_auc": 0.6514852578389011
+          }
+        ],
+        "mean": {
+          "accuracy": 0.60078125,
+          "precision": 0.6208671865171861,
+          "recall": 0.7451327767914478,
+          "f1": 0.676732598277443,
+          "tp": 857.2,
+          "tn": 373.2,
+          "fp": 524.4,
+          "fn": 293.2,
+          "roc_auc": 0.6314908059895493
+        },
+        "std": {
+          "accuracy": 0.009856026880500105,
+          "precision": 0.0105488135068157,
+          "recall": 0.03723946027128466,
+          "f1": 0.013529340264242653,
+          "tp": 42.845769919561484,
+          "tn": 40.97999511957023,
+          "fp": 41.204854082983964,
+          "fn": 42.86443747443795,
+          "roc_auc": 0.012264944299097413
+        }
+      },
+      "validation": {
+        "count": 1284,
+        "percentage": 10.03830818544289
+      },
+      "test": {
+        "count": 1267,
+        "percentage": 9.90540223594715,
+        "metrics": {
+          "accuracy": 0.5998421468034728,
+          "precision": 0.6172140430351076,
+          "recall": 0.7633053221288515,
+          "f1": 0.6825297432686287,
+          "rocAuc": 0.6163376743102305,
+          "tp": 545,
+          "tn": 215,
+          "fp": 338,
+          "fn": 169
+        }
+      },
+      "confusionMatrix": {
+        "labels": [
+          "FAKE",
+          "REAL"
+        ],
+        "matrix": [
+          [
+            215,
+            338
+          ],
+          [
+            169,
+            545
+          ]
+        ],
+        "truePositive": 545,
+        "trueNegative": 215,
+        "falsePositive": 338,
+        "falseNegative": 169
+      },
+      "metrics": {
+        "accuracy": 0.5998421468034728,
+        "precision": 0.6172140430351076,
+        "recall": 0.7633053221288515,
+        "f1": 0.6825297432686287,
+        "rocAuc": 0.6163376743102305,
+        "tp": 545,
+        "tn": 215,
+        "fp": 338,
+        "fn": 169
+      },
+      "hyperparameters": {
+        "glove_version": "6B",
+        "embedding_dim": 100,
+        "vocab_size": 20000,
+        "sequence_length": 500,
+        "cnn_filters": 128,
+        "kernel_size": 5,
+        "bilstm_units": 64,
+        "dropout": 0.5,
+        "dense_units": 32,
+        "optimizer": "adam",
+        "learning_rate": 0.001,
+        "batch_size": 32,
+        "epochs": 10
+      },
+      "trainingTime": 480.30231952667236,
+      "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\glove_cnn_bilstm",
+      "predictionArchive": "ml/results/liar/predictions/v1_glove_cnn_bilstm_predictions.jsonl",
+      "trainingHistory": {
+        "accuracy": [
+          0.5738281011581421,
+          0.607421875,
+          0.631152331829071,
+          0.672656238079071,
+          0.734570324420929,
+          0.8155273199081421,
+          0.874218761920929
+        ],
+        "loss": [
+          0.6742383241653442,
+          0.6587274670600891,
+          0.639468789100647,
+          0.6047741174697876,
+          0.5297765731811523,
+          0.4071834087371826,
+          0.2959645092487335
+        ],
+        "val_accuracy": [
+          0.6028037667274475,
+          0.5950155854225159,
+          0.5623052716255188,
+          0.5965732336044312,
+          0.5739875435829163,
+          0.5630841255187988,
+          0.5716511011123657
+        ],
+        "val_loss": [
+          0.674048662185669,
+          0.6732450723648071,
+          0.6921225190162659,
+          0.6728859543800354,
+          0.7439744472503662,
+          0.8337210416793823,
+          1.175630807876587
+        ]
+      }
+    }
+  ],
+  "ensemble": {
+    "models": [
+      "tfidf_pac",
+      "tfidf_random_forest",
+      "tfidf_logistic_regression",
+      "glove_cnn_bilstm"
+    ],
+    "votingMethod": "validation-weighted soft voting and majority hard voting",
+    "weights": {
+      "tfidf_pac": 0.2283038607266794,
+      "tfidf_random_forest": 0.25939729790498484,
+      "tfidf_logistic_regression": 0.255472955100705,
+      "glove_cnn_bilstm": 0.2568258862676308
+    },
+    "validationBasis": "normalized five-fold CV F1 mean across all trained models",
+    "soft": {
+      "metrics": {
+        "accuracy": 0.6093133385951065,
+        "precision": 0.6336996336996337,
+        "recall": 0.726890756302521,
+        "f1": 0.6771037181996086,
+        "tp": 519,
+        "tn": 253,
+        "fp": 300,
+        "fn": 195,
+        "roc_auc": 0.6361177382345343
+      },
+      "confusionMatrix": {
+        "labels": [
+          "FAKE",
+          "REAL"
+        ],
+        "matrix": [
+          [
+            253,
+            300
+          ],
+          [
+            195,
+            519
+          ]
+        ]
+      }
+    },
+    "hard": {
+      "metrics": {
+        "accuracy": 0.6108918705603789,
+        "precision": 0.6459709379128138,
+        "recall": 0.6848739495798319,
+        "f1": 0.6648538409245411,
+        "tp": 489,
+        "tn": 285,
+        "fp": 268,
+        "fn": 225
+      },
+      "confusionMatrix": {
+        "labels": [
+          "FAKE",
+          "REAL"
+        ],
+        "matrix": [
+          [
+            285,
+            268
+          ],
+          [
+            225,
+            489
+          ]
+        ]
+      }
+    }
+  },
+  "predictionArchive": {
+    "path": "ml/results/liar/predictions",
+    "count": 3801
+  }
+}

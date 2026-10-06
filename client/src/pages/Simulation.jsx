@@ -165,7 +165,7 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
         REAL: Number(realProb.toFixed(4)),
         FAKE: Number(fakeProb.toFixed(4))
       },
-      val_weight: m.val_weight ?? 0.166,
+      val_weight: m.val_weight ?? null,
       inference_time_ms: m.inference_time_ms ?? Number((1.1 + Math.random() * 0.8).toFixed(2)),
       test_dataset_metrics: m.test_dataset_metrics || null
     };
@@ -177,16 +177,16 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
   const softConf = rawSoft.confidence ?? (softPred === 'REAL' ? softRealProb : softFakeProb);
 
   const hardPred = rawHard.prediction || softPred;
-  const realVotes = rawHard.real_votes ?? (candidate_models.filter(m => m.prediction === 'REAL').length || (hardPred === 'REAL' ? 3 : 1));
-  const fakeVotes = rawHard.fake_votes ?? (candidate_models.length - realVotes);
   const totalVotes = Math.max(1, candidate_models.length || 4);
+  const realVotes = rawHard.real_votes ?? (candidate_models.filter(m => m.prediction === 'REAL').length || (hardPred === 'REAL' ? totalVotes : 0));
+  const fakeVotes = rawHard.fake_votes ?? (totalVotes - realVotes);
   const votePercentage = rawHard.vote_percentage ?? Number(((Math.max(realVotes, fakeVotes) / totalVotes) * 100).toFixed(1));
 
   const consensusLabel = realVotes === totalVotes || fakeVotes === totalVotes
-    ? 'Unanimous (6:0)'
-    : Math.max(realVotes, fakeVotes) >= 5
-      ? 'Strong Majority (5:1)'
-      : 'Split Decision (4:2)';
+    ? `Unanimous (${totalVotes}:0)`
+    : Math.max(realVotes, fakeVotes) > totalVotes / 2
+      ? `Strong Majority (${Math.max(realVotes, fakeVotes)}:${Math.min(realVotes, fakeVotes)})`
+      : `Split Decision (${realVotes}:${fakeVotes})`;
 
   const ensembles = {
     weighted_soft_ensemble: {
@@ -491,7 +491,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                 </span>
               </div>
               <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#94a3b8' }}>
-                Test articles against 6 classifiers with ensemble consensus voting.
+                Test articles against 4 trained classifiers with ensemble consensus voting.
               </p>
             </div>
           </div>
@@ -670,7 +670,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
             {loading ? (
               <>
                 <div className="spinner-border spinner-border-sm" role="status"></div>
-                <span>Executing 6-Model Vectorization & Simulation Pipeline...</span>
+                <span>Executing 4-Model Vectorization & Simulation Pipeline...</span>
               </>
             ) : (
               <>
@@ -1284,7 +1284,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                   </div>
 
                   <p style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '14px', fontStyle: 'italic' }}>
-                    Unweighted discrete vote mode across all 6 models: Consensus = (max(N_REAL, N_FAKE) / 6) &times; 100%
+                    Unweighted discrete vote mode across all 4 trained models: Consensus = (max(N_REAL, N_FAKE) / 4) &times; 100%
                   </p>
 
                   <div style={{

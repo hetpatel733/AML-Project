@@ -138,6 +138,7 @@ export const getArchitectureFamily = (modelName = '') => {
   if (name.includes('naive') || name.includes('bayes') || name.includes('mnb')) return 'Probabilistic Bayesian (Multinomial)';
   if (name.includes('passive') || name.includes('aggressive') || name.includes('pac')) return 'Online Margin Classification (PAC)';
   if (name.includes('forest') || name.includes('random')) return 'Ensemble Decision Trees (Bagging)';
+  if (name.includes('glove') || name.includes('cnn') || name.includes('bilstm') || name.includes('lstm')) return 'Neural Sequence Model (GloVe + CNN-BiLSTM)';
   return 'Supervised Classifier';
 };
 
@@ -224,61 +225,13 @@ export const normalizeSimulationData = (data, inputTitle = '', inputText = '') =
           REAL: Number(realProb.toFixed(4)),
           FAKE: Number(fakeProb.toFixed(4))
         },
-        val_weight: m.val_weight ?? 0.166,
+        val_weight: m.val_weight ?? null,
         inference_time_ms: m.inference_time_ms ?? Number((1.1 + Math.random() * 0.8).toFixed(2)),
-        test_dataset_metrics: m.test_dataset_metrics || {
-          accuracy: 0.985,
-          precision: 0.984,
-          recall: 0.986,
-          f1: 0.985,
-          roc_auc: 0.998
-        }
+        test_dataset_metrics: m.test_dataset_metrics || null
       };
     });
   } else {
-    // Generate standard 6 candidate models aligned with raw prediction
-    const defaultWeights = { pac_tfidf: 0.176, pac_bow: 0.175, lr_tfidf: 0.174, lr_bow: 0.175, mnb_tfidf: 0.147, mnb_bow: 0.153 };
-    const defaultMetrics = {
-      pac_tfidf: { accuracy: 0.993, precision: 0.992, recall: 0.994, f1: 0.993, roc_auc: 0.999 },
-      pac_bow:   { accuracy: 0.988, precision: 0.986, recall: 0.990, f1: 0.988, roc_auc: 0.997 },
-      lr_tfidf:  { accuracy: 0.985, precision: 0.984, recall: 0.986, f1: 0.985, roc_auc: 0.998 },
-      lr_bow:    { accuracy: 0.987, precision: 0.986, recall: 0.988, f1: 0.987, roc_auc: 0.998 },
-      mnb_tfidf: { accuracy: 0.941, precision: 0.938, recall: 0.945, f1: 0.941, roc_auc: 0.982 },
-      mnb_bow:   { accuracy: 0.957, precision: 0.952, recall: 0.963, f1: 0.957, roc_auc: 0.989 }
-    };
-
-    const baseConf = raw.confidence || 0.95;
-    const modelDefs = [
-      { id: 'pac_tfidf', name: 'Passive Aggressive (TF-IDF)', vec: 'TF-IDF (1,2-gram)', confDelta: 0.02 },
-      { id: 'pac_bow',   name: 'Passive Aggressive (BoW)',   vec: 'Bag-of-Words (1,2-gram)', confDelta: -0.01 },
-      { id: 'lr_tfidf',  name: 'Logistic Regression (TF-IDF)', vec: 'TF-IDF (1,2-gram)', confDelta: 0.0 },
-      { id: 'lr_bow',    name: 'Logistic Regression (BoW)',   vec: 'Bag-of-Words (1,2-gram)', confDelta: -0.01 },
-      { id: 'mnb_tfidf', name: 'Multinomial Naive Bayes (TF-IDF)', vec: 'TF-IDF (1,2-gram)', confDelta: -0.04 },
-      { id: 'mnb_bow',   name: 'Multinomial Naive Bayes (BoW)', vec: 'Bag-of-Words (1,2-gram)', confDelta: -0.02 }
-    ];
-
-    candidate_models = modelDefs.map(m => {
-      const conf = Math.max(0.70, Math.min(0.995, baseConf + m.confDelta));
-      const pred = isOverallFake ? 'FAKE' : 'REAL';
-      const fakeProb = pred === 'FAKE' ? conf : (1 - conf);
-      const realProb = 1 - fakeProb;
-
-      return {
-        model_id: m.id,
-        model_name: m.name,
-        architecture_family: getArchitectureFamily(m.name),
-        vectorizer: m.vec,
-        prediction: pred,
-        confidence: Number(conf.toFixed(4)),
-        probabilities: {
-          REAL: Number(realProb.toFixed(4)),
-          FAKE: Number(fakeProb.toFixed(4))
-        },
-        val_weight: defaultWeights[m.id] || 0.166,
-        inference_time_ms: Number((1.1 + Math.random() * 0.8).toFixed(2)),
-        test_dataset_metrics: defaultMetrics[m.id] || { accuracy: 0.985, precision: 0.984, recall: 0.986, f1: 0.985, roc_auc: 0.998 }
-      };
-    });
+    candidate_models = [];
   }
 
   const softPred = rawSoft.prediction || (rawSoft.probabilities?.REAL >= 0.5 ? 'REAL' : (isOverallFake ? 'FAKE' : 'REAL'));
@@ -287,16 +240,16 @@ export const normalizeSimulationData = (data, inputTitle = '', inputText = '') =
   const softConf = rawSoft.confidence ?? (softPred === 'REAL' ? softRealProb : softFakeProb);
 
   const hardPred = rawHard.prediction || softPred;
-  const realVotes = rawHard.real_votes ?? (candidate_models.filter(m => m.prediction === 'REAL').length || (hardPred === 'REAL' ? 6 : 0));
-  const fakeVotes = rawHard.fake_votes ?? (candidate_models.length - realVotes);
-  const totalVotes = Math.max(1, candidate_models.length || 6);
+  const totalVotes = Math.max(1, candidate_models.length || 4);
+  const realVotes = rawHard.real_votes ?? (candidate_models.filter(m => m.prediction === 'REAL').length || (hardPred === 'REAL' ? totalVotes : 0));
+  const fakeVotes = rawHard.fake_votes ?? (totalVotes - realVotes);
   const votePercentage = rawHard.vote_percentage ?? Number(((Math.max(realVotes, fakeVotes) / totalVotes) * 100).toFixed(1));
 
   const consensusLabel = realVotes === totalVotes || fakeVotes === totalVotes
-    ? 'Unanimous Consensus (6/6)'
-    : Math.max(realVotes, fakeVotes) >= 5
-      ? 'Supermajority Consensus (5/1)'
-      : 'Majority Split Consensus (4/2)';
+    ? `Unanimous Consensus (${totalVotes}/${totalVotes})`
+    : Math.max(realVotes, fakeVotes) > totalVotes / 2
+      ? `Majority Consensus (${Math.max(realVotes, fakeVotes)}/${totalVotes})`
+      : `Split Consensus (${realVotes}/${fakeVotes})`;
 
   const ensembles = {
     weighted_soft_ensemble: {
@@ -309,7 +262,7 @@ export const normalizeSimulationData = (data, inputTitle = '', inputText = '') =
       },
       confidence: Number(softConf.toFixed(4)),
       consensus_strength: consensusLabel,
-      test_dataset_metrics: rawSoft.test_dataset_metrics || { accuracy: 0.991, precision: 0.992, recall: 0.990, f1: 0.991, roc_auc: 0.999 }
+      test_dataset_metrics: rawSoft.test_dataset_metrics || null
     },
     majority_voting_hard_ensemble: {
       name: rawHard.name || 'Majority Voting Hard Ensemble',
@@ -319,7 +272,7 @@ export const normalizeSimulationData = (data, inputTitle = '', inputText = '') =
       fake_votes: fakeVotes,
       vote_percentage: votePercentage,
       confidence: rawHard.confidence ?? Number((votePercentage / 100).toFixed(4)),
-      test_dataset_metrics: rawHard.test_dataset_metrics || { accuracy: 0.989, precision: 0.988, recall: 0.990, f1: 0.989, roc_auc: 0.998 }
+      test_dataset_metrics: rawHard.test_dataset_metrics || null
     }
   };
 

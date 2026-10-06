@@ -6,6 +6,7 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import predictionRoutes from './routes/predictionRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import datasetRoutes from './routes/datasetRoutes.js';
 import { getHealth, getModelPerformance } from './controllers/analyticsController.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
@@ -60,6 +61,7 @@ app.get('/api/models/performance', getModelPerformance);
 // API route mount points
 app.use('/api/predictions', predictionRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api', datasetRoutes);
 
 // Frontend static asset serving and SPA fallback (when built client exists)
 if (fs.existsSync(clientDistPath)) {

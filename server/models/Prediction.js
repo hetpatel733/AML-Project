@@ -26,6 +26,24 @@ const predictionSchema = new mongoose.Schema(
       },
       uppercase: true
     },
+    dataset: {
+      type: String,
+      default: 'isot',
+      enum: ['isot', 'liar']
+    },
+    experimentVersion: {
+      type: String,
+      default: 'unknown'
+    },
+    trueLabel: {
+      type: String,
+      enum: ['FAKE', 'REAL', null],
+      default: null
+    },
+    correct: {
+      type: Boolean,
+      default: null
+    },
     confidence: {
       type: Number,
       required: [true, 'Confidence score is required'],

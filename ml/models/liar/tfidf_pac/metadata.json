@@ -1,0 +1,44 @@
+{
+    "dataset": "liar",
+    "model": "tfidf_pac",
+    "training_time": 0.6210875511169434,
+    "cv_stats": {
+        "accuracy_mean": 0.55400390625,
+        "accuracy_std": 0.004555431167847891,
+        "precision_mean": 0.6037992433107393,
+        "precision_std": 0.005010739739510145,
+        "recall_mean": 0.5994447172590942,
+        "recall_std": 0.0070959118928333965,
+        "f1_mean": 0.6015774621150789,
+        "f1_std": 0.003934937163172475,
+        "tp_mean": 689.6,
+        "tp_std": 8.06473806146238,
+        "tn_mean": 445.0,
+        "tn_std": 11.593101396951552,
+        "fp_mean": 452.6,
+        "fp_std": 11.689311356961966,
+        "fn_mean": 460.8,
+        "fn_std": 8.23164625090267,
+        "roc_auc_mean": 0.5686130893115966,
+        "roc_auc_std": 0.004849048297338113
+    },
+    "test_metrics": {
+        "accuracy": 0.580110497237569,
+        "precision": 0.6210106382978723,
+        "recall": 0.65406162464986,
+        "f1": 0.6371077762619373,
+        "tp": 467,
+        "tn": 268,
+        "fp": 285,
+        "fn": 247,
+        "roc_auc": 0.5746121233303447
+    },
+    "hyperparameters": {
+        "max_features": 5000,
+        "ngram_range": [
+            1,
+            1
+        ],
+        "random_state": 42
+    }
+}

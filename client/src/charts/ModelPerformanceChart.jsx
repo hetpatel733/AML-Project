@@ -44,9 +44,14 @@ export const ModelPerformanceChart = ({ data = [], height = 340 }) => {
       .range([0, x0.bandwidth()])
       .padding(0.08);
 
-    // Y scale (0 to 1.0 or 0% to 100%)
+    const metricValues = chartData.flatMap(item => metrics
+      .map(metric => item[metric.key])
+      .filter(value => typeof value === 'number' && !Number.isNaN(value)));
+    const minMetric = metricValues.length ? Math.min(...metricValues) : 0;
+
+    // Keep the full benchmark range visible for both ISOT and lower-scoring LIAR metrics.
     const y = d3.scaleLinear()
-      .domain([0.7, 1.0])
+      .domain([Math.max(0, Math.floor((minMetric - 0.05) * 20) / 20), 1.0])
       .range([chartHeight, 0]);
 
     // Grid lines
@@ -77,9 +82,9 @@ export const ModelPerformanceChart = ({ data = [], height = 340 }) => {
       modelGroup.append('rect')
         .attr('class', 'metric-bar')
         .attr('x', x1(metric.key))
-        .attr('y', d => y(d[metric.key] || 0.7))
+        .attr('y', d => y(d[metric.key] ?? 0))
         .attr('width', x1.bandwidth())
-        .attr('height', d => Math.max(0, chartHeight - y(d[metric.key] || 0.7)))
+        .attr('height', d => Math.max(0, chartHeight - y(d[metric.key] ?? 0)))
         .attr('fill', metric.color)
         .attr('rx', 3)
         .style('cursor', 'pointer')

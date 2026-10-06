@@ -49,6 +49,20 @@ export const Dashboard = () => {
     fetchData();
   }, [selectedDataset]);
 
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
+
+  const handleDelete = async (id) => {
+    try {
+      await deletePrediction(id);
+      await fetchData();
+    } catch (err) {
+      console.error('Error deleting prediction:', err);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">

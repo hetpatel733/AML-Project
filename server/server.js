@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import app from './app.js';
-import { connectDB } from './config/db.js';
+import { connectDB, closeDB } from './config/db.js';
 
 // Load environment variables from .env file
 dotenv.config();
@@ -26,19 +26,33 @@ const startServer = async () => {
     console.log('====================================================');
   });
 
+  const gracefulShutdown = async () => {
+    console.log('Shutting down gracefully...');
+    await closeDB();
+    server.close(() => {
+      console.log('Server closed.');
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGINT', gracefulShutdown);
+  process.on('SIGTERM', gracefulShutdown);
+
   // Handle unhandled promise rejections
-  process.on('unhandledRejection', (err) => {
+  process.on('unhandledRejection', async (err) => {
     console.error(`[UnhandledRejection Error]: ${err.message}`);
     // Keep server running in development mode
     if (NODE_ENV === 'production') {
+      await closeDB();
       server.close(() => process.exit(1));
     }
   });
 
   // Handle uncaught exceptions
-  process.on('uncaughtException', (err) => {
+  process.on('uncaughtException', async (err) => {
     console.error(`[UncaughtException Error]: ${err.message}`);
     if (NODE_ENV === 'production') {
+      await closeDB();
       server.close(() => process.exit(1));
     }
   });
