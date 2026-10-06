@@ -17,173 +17,33 @@ import {
 } from 'lucide-react';
 import { getExperimentMetadata } from '../services/api';
 import CrossValidationChart from '../charts/CrossValidationChart';
-
-const DEFAULT_EXPERIMENT_METADATA = {
-  split_ratios: { train: 0.7, val: 0.15, test: 0.15 },
-  split_counts: { train: 31428, val: 6735, test: 6735, total: 44898 },
-  cv_folds: 5,
-  models: {
-    pac_tfidf: {
-      id: 'pac_tfidf',
-      name: 'Passive Aggressive (TF-IDF)',
-      feature_type: 'tfidf',
-      cv_metrics: {
-        accuracy_mean: 0.9930,
-        accuracy_std: 0.0010,
-        f1_mean: 0.9930,
-        f1_std: 0.0010,
-        roc_auc_mean: 0.9990,
-        roc_auc_std: 0.0003
-      },
-      test_metrics: {
-        accuracy: 0.9930,
-        precision: 0.9920,
-        recall: 0.9940,
-        f1_score: 0.9930,
-        roc_auc: 0.9990
-      },
-      ensemble_weight_normalized: 0.176
-    },
-    pac_bow: {
-      id: 'pac_bow',
-      name: 'Passive Aggressive (BoW)',
-      feature_type: 'bow',
-      cv_metrics: {
-        accuracy_mean: 0.9880,
-        accuracy_std: 0.0015,
-        f1_mean: 0.9880,
-        f1_std: 0.0014,
-        roc_auc_mean: 0.9970,
-        roc_auc_std: 0.0006
-      },
-      test_metrics: {
-        accuracy: 0.9880,
-        precision: 0.9860,
-        recall: 0.9900,
-        f1_score: 0.9880,
-        roc_auc: 0.9970
-      },
-      ensemble_weight_normalized: 0.175
-    },
-    lr_tfidf: {
-      id: 'lr_tfidf',
-      name: 'Logistic Regression (TF-IDF)',
-      feature_type: 'tfidf',
-      cv_metrics: {
-        accuracy_mean: 0.9850,
-        accuracy_std: 0.0012,
-        f1_mean: 0.9850,
-        f1_std: 0.0012,
-        roc_auc_mean: 0.9980,
-        roc_auc_std: 0.0004
-      },
-      test_metrics: {
-        accuracy: 0.9850,
-        precision: 0.9840,
-        recall: 0.9860,
-        f1_score: 0.9850,
-        roc_auc: 0.9980
-      },
-      ensemble_weight_normalized: 0.174
-    },
-    lr_bow: {
-      id: 'lr_bow',
-      name: 'Logistic Regression (BoW)',
-      feature_type: 'bow',
-      cv_metrics: {
-        accuracy_mean: 0.9870,
-        accuracy_std: 0.0011,
-        f1_mean: 0.9870,
-        f1_std: 0.0010,
-        roc_auc_mean: 0.9980,
-        roc_auc_std: 0.0004
-      },
-      test_metrics: {
-        accuracy: 0.9870,
-        precision: 0.9860,
-        recall: 0.9880,
-        f1_score: 0.9870,
-        roc_auc: 0.9980
-      },
-      ensemble_weight_normalized: 0.175
-    },
-    mnb_tfidf: {
-      id: 'mnb_tfidf',
-      name: 'Multinomial Naive Bayes (TF-IDF)',
-      feature_type: 'tfidf',
-      cv_metrics: {
-        accuracy_mean: 0.9410,
-        accuracy_std: 0.0025,
-        f1_mean: 0.9410,
-        f1_std: 0.0024,
-        roc_auc_mean: 0.9820,
-        roc_auc_std: 0.0015
-      },
-      test_metrics: {
-        accuracy: 0.9410,
-        precision: 0.9380,
-        recall: 0.9450,
-        f1_score: 0.9410,
-        roc_auc: 0.9820
-      },
-      ensemble_weight_normalized: 0.147
-    },
-    mnb_bow: {
-      id: 'mnb_bow',
-      name: 'Multinomial Naive Bayes (BoW)',
-      feature_type: 'bow',
-      cv_metrics: {
-        accuracy_mean: 0.9570,
-        accuracy_std: 0.0020,
-        f1_mean: 0.9570,
-        f1_std: 0.0019,
-        roc_auc_mean: 0.9890,
-        roc_auc_std: 0.0012
-      },
-      test_metrics: {
-        accuracy: 0.9570,
-        precision: 0.9520,
-        recall: 0.9630,
-        f1_score: 0.9570,
-        roc_auc: 0.9890
-      },
-      ensemble_weight_normalized: 0.153
-    }
-  },
-  ensembles: {
-    weighted_soft_ensemble: {
-      name: 'Validation-Weighted Soft Ensemble',
-      formula: 'P(REAL) = Σ (w_i * P_i(REAL)) where w_i = val_f1_i / Σ val_f1_k',
-      test_metrics: { accuracy: 0.9910, precision: 0.9920, recall: 0.9900, f1_score: 0.9910, roc_auc: 0.9990 }
-    },
-    majority_voting_hard_ensemble: {
-      name: 'Majority Voting Hard Ensemble',
-      formula: 'Verdict = mode(model_verdicts), Vote % = max(N_REAL, N_FAKE) / 6',
-      test_metrics: { accuracy: 0.9890, precision: 0.9880, recall: 0.9900, f1_score: 0.9890, roc_auc: 0.9980 }
-    }
-  }
-};
+import { useDataset } from '../context/DatasetContext';
 
 export const ExperimentAnalysis = () => {
+  const { selectedDataset } = useDataset();
   const [metadata, setMetadata] = useState(null);
   const [loading, setLoading] = useState(true);
   const [openFaq, setOpenFaq] = useState({});
 
   useEffect(() => {
     const fetchMetadata = async () => {
+      setLoading(true);
       try {
-        const response = await getExperimentMetadata();
+        const response = await getExperimentMetadata(selectedDataset);
         if (response?.data && (response.data.models || response.data.model_metrics)) {
           setMetadata(response.data);
+        } else {
+          setMetadata(null);
         }
       } catch (err) {
         console.error('Failed to load experiment metadata:', err);
+        setMetadata(null);
       } finally {
         setLoading(false);
       }
     };
     fetchMetadata();
-  }, []);
+  }, [selectedDataset]);
 
   if (loading) {
     return <div className="page-container"><p className="text-muted">Loading experiment results...</p></div>;
@@ -193,8 +53,8 @@ export const ExperimentAnalysis = () => {
     return (
       <div className="page-container">
         <div className="card">
-          <h2>Experiment results unavailable</h2>
-          <p className="text-muted">Run the ML training pipeline to generate an experiment artifact. No placeholder statistics are shown.</p>
+          <h2>Training not completed</h2>
+          <p className="text-muted">No trained experiment available for this dataset yet.</p>
         </div>
       </div>
     );
@@ -336,7 +196,7 @@ export const ExperimentAnalysis = () => {
         </div>
       </div>
 
-      {/* Section 2: Comprehensive 6-Model Benchmark Matrix Table */}
+      {/* Section 2: Comprehensive 4-Model Benchmark Matrix Table */}
       <div className="card" style={{ marginBottom: '28px', background: 'rgba(30, 41, 59, 0.7)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <Award size={20} className="text-primary" />
@@ -361,8 +221,8 @@ export const ExperimentAnalysis = () => {
             </thead>
             <tbody>
               {Object.entries(metadata?.models || metadata?.model_metrics || {}).map(([key, model]) => {
-                const modelName = model.name || model.model_name || key;
-                const vectorizerLabel = model.feature_type === 'tfidf' || key.includes('tfidf') ? 'TF-IDF (1,2-gram)' : 'Bag of Words (1,2-gram)';
+                const modelName = model.name || model.model_name || model.model || key;
+                const vectorizerLabel = model.feature_type === 'tfidf' || modelName.includes('tfidf') ? 'TF-IDF (1,2-gram)' : 'Bag of Words (1,2-gram)';
                 const weight = model.ensemble_weight_normalized ?? metadata?.ensemble_weights?.normalized_weights?.[key] ?? metadata?.validation_weights?.[key] ?? (1 / 6);
                 const acc = model.test_metrics?.accuracy ?? model.test_metrics?.acc ?? 0.99;
                 const prec = model.test_metrics?.precision ?? 0.99;
@@ -441,7 +301,7 @@ export const ExperimentAnalysis = () => {
                       ★ {hardEns.name || 'Majority Voting Hard Ensemble'}
                     </td>
                     <td style={{ padding: '12px 14px', color: '#cbd5e1' }}>
-                      6-Model Discrete Vote
+                      4-Model Discrete Vote
                     </td>
                     <td style={{ padding: '12px 14px', textAlign: 'center', color: '#93c5fd', fontWeight: 700 }}>
                       Unweighted

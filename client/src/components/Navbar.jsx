@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  ShieldCheck, 
-  BrainCircuit, 
-  LayoutDashboard, 
-  Search, 
-  History as HistoryIcon, 
-  BarChart3, 
-  Info, 
-  Menu, 
+import {
+  ShieldCheck,
+  BrainCircuit,
+  LayoutDashboard,
+  Search,
+  History as HistoryIcon,
+  BarChart3,
+  Info,
+  Menu,
   X,
   Sparkles,
   FlaskConical,
-  BookOpen
+  BookOpen,
+  Database
 } from 'lucide-react';
+import { useDataset } from '../context/DatasetContext';
 
 export const Navbar = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { selectedDataset, setSelectedDataset } = useDataset();
 
   const navLinks = [
     { path: '/', label: 'Home', icon: BrainCircuit },
@@ -68,6 +71,18 @@ export const Navbar = () => {
 
         {/* Action Button & Status */}
         <div className="navbar-actions">
+          <div className="dataset-switch-container" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginRight: '16px', background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <Database size={14} className="text-muted" />
+            <select 
+              value={selectedDataset} 
+              onChange={(e) => setSelectedDataset(e.target.value)}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: '600', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="isot">ISOT Dataset</option>
+              <option value="liar">LIAR Dataset</option>
+            </select>
+          </div>
+
           <Link to="/simulation" className="btn-primary btn-sm">
             <FlaskConical size={15} />
             <span>Simulation Lab</span>

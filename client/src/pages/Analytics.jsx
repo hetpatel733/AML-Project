@@ -19,18 +19,21 @@ import {
   Percent
 } from 'lucide-react';
 import { formatConfidence } from '../utils/helpers';
+import { useDataset } from '../context/DatasetContext';
 
 export const Analytics = () => {
+  const { selectedDataset } = useDataset();
   const [analytics, setAnalytics] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAllAnalytics = async () => {
+      setLoading(true);
       try {
         const [anRes, stRes] = await Promise.all([
-          getAnalytics(),
-          getPredictionStats()
+          getAnalytics(selectedDataset),
+          getPredictionStats(selectedDataset)
         ]);
         setAnalytics(anRes.data);
         setStats(stRes.data);
@@ -42,7 +45,7 @@ export const Analytics = () => {
     };
 
     fetchAllAnalytics();
-  }, []);
+  }, [selectedDataset]);
 
   if (loading) {
     return (

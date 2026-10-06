@@ -328,9 +328,9 @@ export const getPredictionHistory = async (params = {}) => {
  * 3. Get Prediction Aggregate Statistics
  * Sends GET /api/predictions/stats
  */
-export const getPredictionStats = async () => {
+export const getPredictionStats = async (dataset = 'isot') => {
   try {
-    const response = await apiClient.get('/predictions/stats');
+    const response = await apiClient.get(`/predictions/stats?dataset=${dataset}`);
     const result = response.data?.data ?? response.data;
     return { data: result, isMock: false };
   } catch (error) {
@@ -362,9 +362,9 @@ export const getPredictionStats = async () => {
  * 4. Get Detailed Analytics (Trend, Confidence distribution, Confusion Matrix)
  * Sends GET /api/analytics
  */
-export const getAnalytics = async () => {
+export const getAnalytics = async (dataset = 'isot') => {
   try {
-    const response = await apiClient.get('/analytics');
+    const response = await apiClient.get(`/analytics?dataset=${dataset}`);
     const result = response.data?.data ?? response.data;
     return { data: result, isMock: false };
   } catch (error) {
@@ -652,12 +652,12 @@ const simulateFullExperimentalPipeline = (title, text) => {
       },
       majority_voting_hard_ensemble: {
         name: 'Majority Voting Hard Ensemble',
-        formula: 'Verdict = mode(model_verdicts), Vote % = max(N_REAL, N_FAKE) / 6',
+        formula: 'Verdict = mode(model_verdicts), Vote % = max(N_REAL, N_FAKE) / 4',
         prediction: hardPred,
         fake_votes: fakeVotes,
         real_votes: realVotes,
         vote_percentage: hardVotePct,
-        confidence: Number((Math.max(fakeVotes, realVotes) / 6).toFixed(4)),
+        confidence: Number((Math.max(fakeVotes, realVotes) / 4).toFixed(4)),
         test_dataset_metrics: { accuracy: 0.989, precision: 0.988, recall: 0.990, f1: 0.989, roc_auc: 0.998 }
       }
     },
@@ -685,7 +685,7 @@ export const runSimulation = async (newsData) => {
         prediction: primary.label || 'FAKE',
         confidence: primary.confidence || 0.95,
         model: primary.decision_source || 'Validation-Weighted Soft Ensemble',
-        explanation: primary.explanation || 'Analyzed via 6 candidate models & dual voting ensembles.',
+        explanation: primary.explanation || 'Analyzed via 4 candidate models & dual voting ensembles.',
         createdAt: new Date().toISOString(),
         simulationResults: normalized
       };
@@ -751,75 +751,15 @@ export const submitPredictionFeedback = async (feedbackData) => {
  * 8. Retrieve Academic Experiment Metadata & CV Benchmarks
  * Sends GET /api/predictions/experiments/metadata
  */
-export const getExperimentMetadata = async () => {
+export const getExperimentMetadata = async (dataset = 'isot') => {
   try {
-    const response = await apiClient.get('/predictions/experiments/metadata');
+    const response = await apiClient.get(`/predictions/experiments/metadata?dataset=${dataset}`);
     const result = response.data?.data ?? response.data;
     return { data: result, isMock: false };
   } catch (error) {
     console.info('Using experiment metadata fallback:', error.message);
     return {
-      data: {
-        split_ratios: { train: 0.7, val: 0.15, test: 0.15 },
-        split_counts: { train: 31428, val: 6735, test: 6735, total: 44898 },
-        cv_folds: 5,
-        vectorizers: {
-          tfidf: { type: 'TfidfVectorizer', ngram_range: [1, 2], max_features: 10000, sublinear_tf: true },
-          bow: { type: 'CountVectorizer', ngram_range: [1, 2], max_features: 10000 }
-        },
-        validation_weights: {
-          pac_tfidf: 0.176,
-          pac_bow: 0.175,
-          lr_tfidf: 0.174,
-          lr_bow: 0.175,
-          mnb_tfidf: 0.147,
-          mnb_bow: 0.153
-        },
-        model_metrics: {
-          pac_tfidf: {
-            model_name: 'Passive Aggressive (TF-IDF)',
-            cv_metrics: { accuracy_mean: 0.993, accuracy_std: 0.001, f1_mean: 0.993, f1_std: 0.001, roc_auc_mean: 0.999, roc_auc_std: 0.0003 },
-            test_metrics: { accuracy: 0.993, precision: 0.992, recall: 0.994, f1: 0.993, roc_auc: 0.999 }
-          },
-          pac_bow: {
-            model_name: 'Passive Aggressive (BoW)',
-            cv_metrics: { accuracy_mean: 0.988, accuracy_std: 0.0015, f1_mean: 0.988, f1_std: 0.0014, roc_auc_mean: 0.997, roc_auc_std: 0.0006 },
-            test_metrics: { accuracy: 0.988, precision: 0.986, recall: 0.990, f1: 0.988, roc_auc: 0.997 }
-          },
-          lr_tfidf: {
-            model_name: 'Logistic Regression (TF-IDF)',
-            cv_metrics: { accuracy_mean: 0.985, accuracy_std: 0.0012, f1_mean: 0.985, f1_std: 0.0012, roc_auc_mean: 0.998, roc_auc_std: 0.0004 },
-            test_metrics: { accuracy: 0.985, precision: 0.984, recall: 0.986, f1: 0.985, roc_auc: 0.998 }
-          },
-          lr_bow: {
-            model_name: 'Logistic Regression (BoW)',
-            cv_metrics: { accuracy_mean: 0.987, accuracy_std: 0.0011, f1_mean: 0.987, f1_std: 0.001, roc_auc_mean: 0.998, roc_auc_std: 0.0004 },
-            test_metrics: { accuracy: 0.987, precision: 0.986, recall: 0.988, f1: 0.987, roc_auc: 0.998 }
-          },
-          mnb_tfidf: {
-            model_name: 'Multinomial Naive Bayes (TF-IDF)',
-            cv_metrics: { accuracy_mean: 0.941, accuracy_std: 0.0025, f1_mean: 0.941, f1_std: 0.0024, roc_auc_mean: 0.982, roc_auc_std: 0.0015 },
-            test_metrics: { accuracy: 0.941, precision: 0.938, recall: 0.945, f1: 0.941, roc_auc: 0.982 }
-          },
-          mnb_bow: {
-            model_name: 'Multinomial Naive Bayes (BoW)',
-            cv_metrics: { accuracy_mean: 0.957, accuracy_std: 0.002, f1_mean: 0.957, f1_std: 0.0019, roc_auc_mean: 0.989, roc_auc_std: 0.0012 },
-            test_metrics: { accuracy: 0.957, precision: 0.952, recall: 0.963, f1: 0.957, roc_auc: 0.989 }
-          }
-        },
-        ensembles: {
-          weighted_soft_ensemble: {
-            name: 'Validation-Weighted Soft Ensemble',
-            formula: 'P(REAL) = Σ (w_i * P_i(REAL)) where w_i = val_f1_i / Σ val_f1_k',
-            test_metrics: { accuracy: 0.991, precision: 0.992, recall: 0.990, f1: 0.991, roc_auc: 0.999 }
-          },
-          majority_voting_hard_ensemble: {
-            name: 'Majority Voting Hard Ensemble',
-            formula: 'Verdict = mode(model_verdicts), Vote % = max(N_REAL, N_FAKE) / 6',
-            test_metrics: { accuracy: 0.989, precision: 0.988, recall: 0.990, f1: 0.989, roc_auc: 0.998 }
-          }
-        }
-      },
+      data: null,
       isMock: true
     };
   }

@@ -36,6 +36,8 @@ import { runSimulation, submitPredictionFeedback } from '../services/api';
 import MultiModelComparisonChart from '../charts/MultiModelComparisonChart';
 import GeminiInsights from '../components/GeminiInsights';
 
+import { useDataset } from '../context/DatasetContext';
+
 // Extended preset benchmark articles covering diverse journalistic and disinformation topologies
 const PRESET_ARTICLES = [
   {
@@ -139,8 +141,9 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
     if (name.includes('logistic')) return 'Logistic Regression';
     if (name.includes('svm') || name.includes('support')) return 'Support Vector Machine';
     if (name.includes('naive') || name.includes('bayes')) return 'Naive Bayes';
-    if (name.includes('passive') || name.includes('aggressive')) return 'Passive Aggressive';
+    if (name.includes('passive') || name.includes('aggressive') || name.includes('pac')) return 'Passive Aggressive';
     if (name.includes('forest') || name.includes('random')) return 'Random Forest';
+    if (name.includes('cnn') || name.includes('bilstm') || name.includes('lstm')) return 'Deep Learning (CNN-BiLSTM)';
     return 'Classifier';
   };
 
@@ -174,9 +177,9 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
   const softConf = rawSoft.confidence ?? (softPred === 'REAL' ? softRealProb : softFakeProb);
 
   const hardPred = rawHard.prediction || softPred;
-  const realVotes = rawHard.real_votes ?? (candidate_models.filter(m => m.prediction === 'REAL').length || (hardPred === 'REAL' ? 5 : 1));
+  const realVotes = rawHard.real_votes ?? (candidate_models.filter(m => m.prediction === 'REAL').length || (hardPred === 'REAL' ? 3 : 1));
   const fakeVotes = rawHard.fake_votes ?? (candidate_models.length - realVotes);
-  const totalVotes = Math.max(1, candidate_models.length || 6);
+  const totalVotes = Math.max(1, candidate_models.length || 4);
   const votePercentage = rawHard.vote_percentage ?? Number(((Math.max(realVotes, fakeVotes) / totalVotes) * 100).toFixed(1));
 
   const consensusLabel = realVotes === totalVotes || fakeVotes === totalVotes
@@ -235,6 +238,7 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
 };
 
 export const Simulation = () => {
+  const { selectedDataset } = useDataset();
   const [title, setTitle] = useState('');
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -258,6 +262,12 @@ export const Simulation = () => {
   const [feedbackRating, setFeedbackRating] = useState(5);
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
+
+  // Clear simulation result when dataset changes
+  React.useEffect(() => {
+    setSimulationResult(null);
+    setError(null);
+  }, [selectedDataset]);
 
   // Filtered preset articles
   const filteredPresets = useMemo(() => {
@@ -320,7 +330,8 @@ export const Simulation = () => {
     try {
       const response = await runSimulation({
         title: title.trim(),
-        text: text.trim()
+        text: text.trim(),
+        dataset: selectedDataset
       });
       const normalized = normalizeSimulationData(response.data, title.trim(), text.trim());
       setSimulationResult(normalized);
@@ -972,7 +983,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
             </div>
           </div>
 
-          {/* STEP 4: Parallel 6 Candidate Models */}
+          {/* STEP 4: Parallel 4 Candidate Models */}
           <div className="card" style={{ marginBottom: '24px', background: 'rgba(20, 30, 51, 0.8)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -981,7 +992,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                 </span>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#f8fafc' }}>
-                    Parallel 6 Candidate Models (Inference & Split Benchmark)
+                    Parallel 4 Candidate Models (Inference & Split Benchmark)
                   </h3>
                   <span style={{ fontSize: '12px', color: '#94a3b8' }}>
                     Academic distinction: Live article inference vs 15% hold-out test set benchmark.

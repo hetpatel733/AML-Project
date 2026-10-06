@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import PredictionHistory from '../components/PredictionHistory';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { getPredictionHistory, deletePrediction } from '../services/api';
-import { 
-  History as HistoryIcon, 
-  Search, 
-  Filter, 
-  ArrowUpDown, 
-  ChevronLeft, 
-  ChevronRight, 
+import {
+  History as HistoryIcon,
+  Search,
+  Filter,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
   RotateCcw,
   Sparkles,
   Layers,
@@ -17,8 +17,10 @@ import {
   CheckCircle2,
   AlertCircle
 } from 'lucide-react';
+import { useDataset } from '../context/DatasetContext';
 
 export const History = () => {
+  const { selectedDataset } = useDataset();
   const [predictions, setPredictions] = useState([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -40,7 +42,8 @@ export const History = () => {
         consensusFilter,
         sortBy,
         page,
-        limit: 8
+        limit: 8,
+        dataset: selectedDataset
       });
       setPredictions(res.data.predictions || []);
       setTotal(res.data.total || 0);
@@ -54,7 +57,7 @@ export const History = () => {
 
   useEffect(() => {
     fetchHistory();
-  }, [search, filter, consensusFilter, sortBy, page]);
+  }, [search, filter, consensusFilter, sortBy, page, selectedDataset]);
 
   const handleResetFilters = () => {
     setSearch('');

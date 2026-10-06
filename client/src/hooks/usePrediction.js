@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { predictNews } from '../services/api';
+import { useDataset } from '../context/DatasetContext';
 
 /**
  * Custom React Hook to manage news prediction logic and UI states
  */
 export const usePrediction = () => {
+  const { selectedDataset } = useDataset();
   const [prediction, setPrediction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -20,7 +22,7 @@ export const usePrediction = () => {
     setError(null);
 
     try {
-      const response = await predictNews({ title: title.trim(), text: text.trim() });
+      const response = await predictNews({ title: title.trim(), text: text.trim(), dataset: selectedDataset });
       setPrediction(response.data);
       setIsMock(response.isMock);
       return response.data;
@@ -31,7 +33,7 @@ export const usePrediction = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedDataset]);
 
   const clearPrediction = useCallback(() => {
     setPrediction(null);

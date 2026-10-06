@@ -20,8 +20,10 @@ import {
   FlaskConical
 } from 'lucide-react';
 import { formatConfidence } from '../utils/helpers';
+import { useDataset } from '../context/DatasetContext';
 
 export const Dashboard = () => {
+  const { selectedDataset } = useDataset();
   const [stats, setStats] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,8 +32,8 @@ export const Dashboard = () => {
   const fetchData = async () => {
     try {
       const [statsRes, analyticsRes] = await Promise.all([
-        getPredictionStats(),
-        getAnalytics()
+        getPredictionStats(selectedDataset),
+        getAnalytics(selectedDataset)
       ]);
       setStats(statsRes.data);
       setAnalytics(analyticsRes.data);
@@ -45,21 +47,11 @@ export const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    fetchData();
-  };
-
-  const handleDelete = async (id) => {
-    await deletePrediction(id);
-    fetchData();
-  };
+  }, [selectedDataset]);
 
   if (loading) {
     return (
-      <div className="page-container">
+      <div className="flex justify-center items-center h-64">
         <LoadingSpinner message="Loading dashboard..." />
       </div>
     );
