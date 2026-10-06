@@ -37,6 +37,10 @@ dist/
 .vite/
 client/.vite/
 
+# ML training data and notebooks are not needed in the runtime image
+ml/data/
+ml/notebooks/
+
 # IDE & OS Metadata
 .vscode/
 .idea/

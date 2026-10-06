@@ -68,7 +68,8 @@ WORKDIR /app
 
 # Install Python ML dependencies with --no-cache-dir and pre-download NLTK corpora
 COPY ml/requirements.txt ./ml/requirements.txt
-RUN pip install --no-cache-dir -r ./ml/requirements.txt \
+RUN python -m pip install --upgrade pip setuptools wheel \
+    && python -m pip install --no-cache-dir -r ./ml/requirements.txt \
     && python -m nltk.downloader stopwords
 
 # Install Node.js Express server production dependencies only (no devDependencies)

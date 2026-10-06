@@ -4,8 +4,12 @@ import numpy as np
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
-import tensorflow as tf
-from tensorflow.keras.preprocessing.sequence import pad_sequences
+try:
+    import tensorflow as tf
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
+except Exception:
+    tf = None
+    pad_sequences = None
 
 from src.config import (
     MODEL_TFIDF_PAC,
@@ -61,7 +65,7 @@ class NewsPredictor:
             except Exception as e:
                 print(f"Failed to load {model_name} for {dataset}: {e}")
                 
-        if not available_models or MODEL_GLOVE_CNN_BILSTM in available_models:
+        if tf is not None and (not available_models or MODEL_GLOVE_CNN_BILSTM in available_models):
             try:
                 self.models[dataset][MODEL_GLOVE_CNN_BILSTM] = tf.keras.models.load_model(get_keras_model_path(dataset, MODEL_GLOVE_CNN_BILSTM))
                 self.tokenizers[dataset][MODEL_GLOVE_CNN_BILSTM] = joblib.load(get_tokenizer_path(dataset, MODEL_GLOVE_CNN_BILSTM))
@@ -69,6 +73,8 @@ class NewsPredictor:
                     self.metadata[dataset][MODEL_GLOVE_CNN_BILSTM] = json.load(f)
             except Exception as e:
                 print(f"Failed to load {MODEL_GLOVE_CNN_BILSTM} for {dataset}: {e}")
+        elif not available_models or MODEL_GLOVE_CNN_BILSTM in available_models:
+            print(f"Skipping {MODEL_GLOVE_CNN_BILSTM} for {dataset}: TensorFlow is not available in this Python environment.")
             
     def predict(self, text: str, dataset: str = "isot", model_name: str = None) -> Dict[str, Any]:
         self.load_models(dataset)
@@ -116,6 +122,12 @@ class NewsPredictor:
         }
         
     def _predict_keras(self, cleaned_text: str, dataset: str) -> Dict[str, Any]:
+        if tf is None or pad_sequences is None:
+            raise RuntimeError(
+                "TensorFlow is not available in this Python environment. "
+                "Use a classical model or install a TensorFlow-compatible Python version."
+            )
+
         model = self.models[dataset][MODEL_GLOVE_CNN_BILSTM]
         tokenizer = self.tokenizers[dataset][MODEL_GLOVE_CNN_BILSTM]
         
