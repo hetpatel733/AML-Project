@@ -449,54 +449,67 @@ def main():
     
     # 2. Confusion Matrices & Scores Evaluation
     datasets_data = {}
-    for d_name, d_dir in [("isot", ISOT_FIG_DIR), ("liar", LIAR_FIG_DIR)]:
-        x_train, x_test, y_train, y_test = load_dataset(d_name, test_size=0.2)
+    for d_name, d_dir, bm_data in [("isot", ISOT_FIG_DIR, isot_bm), ("liar", LIAR_FIG_DIR, liar_bm)]:
+        models_available = all(get_model_path(d_name, m_id).exists() for m_id in MODEL_DISPLAY_NAMES)
         cms = {}
         scores_dict = {}
-        
-        for m_id, m_name in MODEL_DISPLAY_NAMES.items():
-            model = joblib.load(get_model_path(d_name, m_id))
-            vec = joblib.load(get_vectorizer_path(d_name, m_id))
-            
-            x_test_vec = vec.transform(x_test)
-            preds = model.predict(x_test_vec)
-            scores = get_model_scores(model, x_test_vec)
-            
-            cm = confusion_matrix(y_test, preds, labels=[0, 1])
-            cms[m_id] = cm
-            scores_dict[m_id] = scores
-            
-            # Individual CM plot
-            plot_single_confusion_matrix(cm, m_name, d_name, d_dir / f"confusion_matrix_{m_id}.png")
-            
-        # Grid CM plot for this dataset
-        plot_all_confusion_matrices_grid(cms, d_name, d_dir / f"{d_name}_all_confusion_matrices.png")
-        
-        # PR Curve for this dataset
-        plot_precision_recall_curves(y_test, scores_dict, d_name, d_dir / f"{d_name}_precision_recall_curves.png")
-        
-        # Recall vs Threshold Curve for this dataset
-        plot_recall_vs_threshold_curves(y_test, scores_dict, d_name, d_dir / f"{d_name}_recall_vs_threshold.png")
-        
-        datasets_data[d_name] = {"y_test": y_test, "scores": scores_dict}
-        
-    # Side-by-side PR curves
-    plot_side_by_side_pr_curves(
-        datasets_data["isot"]["y_test"],
-        datasets_data["isot"]["scores"],
-        datasets_data["liar"]["y_test"],
-        datasets_data["liar"]["scores"],
-        COMP_FIG_DIR / "both_datasets_recall_pr_curves.png"
-    )
 
-    # Side-by-side Recall vs Threshold curves
-    plot_side_by_side_recall_threshold(
-        datasets_data["isot"]["y_test"],
-        datasets_data["isot"]["scores"],
-        datasets_data["liar"]["y_test"],
-        datasets_data["liar"]["scores"],
-        COMP_FIG_DIR / "both_datasets_recall_vs_threshold.png"
-    )
+        if models_available:
+            x_train, x_test, y_train, y_test = load_dataset(d_name, test_size=0.2)
+            for m_id, m_name in MODEL_DISPLAY_NAMES.items():
+                model = joblib.load(get_model_path(d_name, m_id))
+                vec = joblib.load(get_vectorizer_path(d_name, m_id))
+
+                x_test_vec = vec.transform(x_test)
+                preds = model.predict(x_test_vec)
+                scores = get_model_scores(model, x_test_vec)
+
+                cm = confusion_matrix(y_test, preds, labels=[0, 1])
+                cms[m_id] = cm
+                scores_dict[m_id] = scores
+
+                # Individual CM plot
+                plot_single_confusion_matrix(cm, m_name, d_name, d_dir / f"confusion_matrix_{m_id}.png")
+
+            # Grid CM plot for this dataset
+            plot_all_confusion_matrices_grid(cms, d_name, d_dir / f"{d_name}_all_confusion_matrices.png")
+
+            # PR Curve for this dataset
+            plot_precision_recall_curves(y_test, scores_dict, d_name, d_dir / f"{d_name}_precision_recall_curves.png")
+
+            # Recall vs Threshold Curve for this dataset
+            plot_recall_vs_threshold_curves(y_test, scores_dict, d_name, d_dir / f"{d_name}_recall_vs_threshold.png")
+
+            datasets_data[d_name] = {"y_test": y_test, "scores": scores_dict}
+        else:
+            # Reconstruct confusion matrices from benchmark json
+            bm_models = {m["id"]: m for m in bm_data.get("models", [])}
+            for m_id, m_name in MODEL_DISPLAY_NAMES.items():
+                if m_id in bm_models and "confusion_matrix" in bm_models[m_id].get("metrics", {}):
+                    cm = np.array(bm_models[m_id]["metrics"]["confusion_matrix"])
+                    cms[m_id] = cm
+                    plot_single_confusion_matrix(cm, m_name, d_name, d_dir / f"confusion_matrix_{m_id}.png")
+            if cms:
+                plot_all_confusion_matrices_grid(cms, d_name, d_dir / f"{d_name}_all_confusion_matrices.png")
+
+    if "isot" in datasets_data and "liar" in datasets_data:
+        # Side-by-side PR curves
+        plot_side_by_side_pr_curves(
+            datasets_data["isot"]["y_test"],
+            datasets_data["isot"]["scores"],
+            datasets_data["liar"]["y_test"],
+            datasets_data["liar"]["scores"],
+            COMP_FIG_DIR / "both_datasets_recall_pr_curves.png"
+        )
+
+        # Side-by-side Recall vs Threshold curves
+        plot_side_by_side_recall_threshold(
+            datasets_data["isot"]["y_test"],
+            datasets_data["isot"]["scores"],
+            datasets_data["liar"]["y_test"],
+            datasets_data["liar"]["scores"],
+            COMP_FIG_DIR / "both_datasets_recall_vs_threshold.png"
+        )
     
     print("\nAll visualization images generated successfully!")
 

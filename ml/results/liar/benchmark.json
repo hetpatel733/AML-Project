@@ -2,7 +2,7 @@
   "dataset": {
     "id": "liar",
     "name": "LIAR",
-    "description": "Binary fake-news classification dataset.",
+    "description": "Binary fake-news classification dataset (PANTS-FIRE, FALSE, BARELY-TRUE vs HALF-TRUE, MOSTLY-TRUE, TRUE).",
     "totalRecords": 12791,
     "classes": [
       "FAKE",
@@ -24,34 +24,52 @@
       "normalizeWhitespace": true,
       "expandContractions": true,
       "preserveNegationWords": true,
-      "removeStopwords": "custom (negation-preserving)",
+      "removeStopwords": "retained (short-claim preservation)",
       "lemmatization": "WordNet",
-      "tokenization": "whitespace & alphabetic tokens with contraction expansion",
-      "vectorizer": "TF-IDF",
+      "tokenization": "word n-grams with negation preservation",
+      "vectorizer": "TfidfVectorizer(ngram_range=(1,2), sublinear_tf=True, min_df=2, max_features=25000)",
       "ngramRange": [
         1,
         2
       ],
+      "wordNgramRange": [
+        1,
+        2
+      ],
+      "maxFeatures": 25000,
+      "wordMaxFeatures": 25000,
       "sublinearTf": true,
       "minDf": 2,
       "maxDf": 0.98,
-      "maxFeatures": 10000
+      "textCleaning": "clean_text_liar (HTML decoding, URL stripping, special chars removed, lowercase, whitespace normalized, negation words preserved)",
+      "metadataFeatures": "None (pure text-based modeling)"
     }
   },
   "experiment": {
-    "version": "improved-preprocessing-v2",
-    "name": "Improved Preprocessing Pipeline with Negation Preservation & Sublinear TF-IDF",
-    "trainingTimestamp": "2026-10-08T03:52:30.974943+00:00",
+    "version": "liar-text-controlled-v3",
+    "name": "Controlled Text-Based LIAR Ablation & Tuned Model Benchmark",
+    "trainingTimestamp": "2026-10-08T06:06:46.974158+00:00",
     "randomSeed": 42,
     "split": "stratified 80% training / 20% testing",
     "validation": {
       "used": false,
-      "reason": "No separate validation split. Preprocessing experiments conducted on 80% train split via 5-fold CV; final evaluation on untouched 20% test partition."
+      "reason": "No separate validation split. Preprocessing, hyperparameter grids, and decision thresholds tuned on 80% train split via 5-fold Stratified CV; final evaluation on untouched 20% test partition."
     },
     "crossValidationOnTrain": {
       "folds": 5,
       "strategy": "StratifiedKFold on 80% training partition only"
+    },
+    "ablationSummary": {
+      "word_1_2_cv_acc": 0.6206,
+      "word_1_3_cv_acc": 0.6136,
+      "char_3_5_cv_acc": 0.6075,
+      "word_char_cv_acc": 0.6088,
+      "winning_representation": "Word TF-IDF (1,2) with clean_text_liar"
     }
+  },
+  "paperComparison": {
+    "baselinePaper": "Wang (2017) LIAR Benchmark",
+    "source": "Liar, Liar Pants on Fire: A New Benchmark Dataset for Fake News Detection (ACL 2017)"
   },
   "splits": {
     "training": {
@@ -81,7 +99,7 @@
       "id": "logistic_regression",
       "name": "Logistic Regression",
       "type": "classical_ml",
-      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
       "status": "trained",
       "parameters": {
         "C": 1.0,
@@ -94,12 +112,12 @@
         "n_jobs": null,
         "penalty": "deprecated",
         "random_state": 42,
-        "solver": "lbfgs",
+        "solver": "liblinear",
         "tol": 0.0001,
         "verbose": 0,
         "warm_start": false
       },
-      "trainingTime": 0.519896400000107,
+      "trainingTime": 0.03194609999991371,
       "training": {
         "count": 10232,
         "percentage": 80.0
@@ -113,94 +131,217 @@
         "count": 2559,
         "percentage": 20.0,
         "metrics": {
-          "accuracy": 0.6135209066041423,
-          "precision": 0.6261520737327189,
-          "recall": 0.7617379117028732,
-          "f1": 0.687322162503952,
-          "roc_auc": 0.6449407068623543,
-          "rocAuc": 0.6449407068623543,
+          "accuracy": 0.6213364595545134,
+          "precision": 0.6292325056433409,
+          "recall": 0.7813594954449895,
+          "f1": 0.6970928415129728,
+          "roc_auc": 0.6643035253973717,
+          "rocAuc": 0.6643035253973717,
           "confusion_matrix": [
             [
-              483,
-              649
+              475,
+              657
             ],
             [
-              340,
-              1087
+              312,
+              1115
             ]
           ],
-          "tn": 483,
-          "fp": 649,
-          "fn": 340,
-          "tp": 1087
+          "tn": 475,
+          "fp": 657,
+          "fn": 312,
+          "tp": 1115
+        },
+        "metricsAtTunedThreshold": {
+          "threshold": 0.55,
+          "accuracy": 0.620945681906995,
+          "precision": 0.656614119259767,
+          "recall": 0.6713384723195515,
+          "f1": 0.6638946638946639,
+          "roc_auc": 0.6643035253973717,
+          "rocAuc": 0.6643035253973717,
+          "confusion_matrix": [
+            [
+              631,
+              501
+            ],
+            [
+              469,
+              958
+            ]
+          ],
+          "tn": 631,
+          "fp": 501,
+          "fn": 469,
+          "tp": 958
         }
       },
       "metrics": {
-        "accuracy": 0.6135209066041423,
-        "precision": 0.6261520737327189,
-        "recall": 0.7617379117028732,
-        "f1": 0.687322162503952,
-        "roc_auc": 0.6449407068623543,
-        "rocAuc": 0.6449407068623543,
+        "accuracy": 0.6213364595545134,
+        "precision": 0.6292325056433409,
+        "recall": 0.7813594954449895,
+        "f1": 0.6970928415129728,
+        "roc_auc": 0.6643035253973717,
+        "rocAuc": 0.6643035253973717,
         "confusion_matrix": [
           [
-            483,
-            649
+            475,
+            657
           ],
           [
-            340,
-            1087
+            312,
+            1115
           ]
         ],
-        "tn": 483,
-        "fp": 649,
-        "fn": 340,
-        "tp": 1087
+        "tn": 475,
+        "fp": 657,
+        "fn": 312,
+        "tp": 1115
       },
       "crossValidation": {
         "folds": 5,
         "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
         "mean": {
-          "accuracy": 0.6122960382143765,
-          "f1": 0.6829206575879567,
-          "precision": 0.6280678152045762,
-          "recall": 0.7483810710793832
+          "accuracy": 0.6212856140712799,
+          "f1": 0.6917080875619002,
+          "precision": 0.633523338551952,
+          "recall": 0.7616948908000019,
+          "roc_auc": 0.6611699979268761
         },
         "std": {
-          "accuracy": 0.013022659467991084,
-          "f1": 0.008527168360613796,
-          "precision": 0.011495994896207408,
-          "recall": 0.007014644530749236
+          "accuracy": 0.01637728884035116,
+          "f1": 0.013078672438480762,
+          "precision": 0.012521078070966038,
+          "recall": 0.01447100649241941
         },
         "scores": {
           "accuracy": [
-            0.6121152906692721,
-            0.5994137762579385,
-            0.6256109481915934,
-            0.6280547409579668,
-            0.5962854349951124
+            0.6321446018563752,
+            0.6160234489496824,
+            0.6119257086999023,
+            0.6466275659824047,
+            0.5997067448680352
           ],
           "f1": [
-            0.6826538768984812,
-            0.6727853152434158,
-            0.6896272285251216,
-            0.6949899799599198,
-            0.6745468873128447
+            0.7022538552787663,
+            0.6863527533918595,
+            0.6824,
+            0.7113772455089821,
+            0.6761565836298933
+          ],
+          "precision": [
+            0.6402307137707282,
+            0.6304985337243402,
+            0.6276674025018396,
+            0.6532258064516129,
+            0.6159942363112392
+          ],
+          "recall": [
+            0.7775831873905429,
+            0.7530647985989493,
+            0.747589833479404,
+            0.7808939526730938,
+            0.7493426818580193
           ]
+        },
+        "thresholdAnalysis": {
+          "0.4": {
+            "accuracy": 0.6049648162627053,
+            "precision": 0.5938028169014085,
+            "recall": 0.9234273698966182,
+            "f1": 0.7228089425318887,
+            "tp": 5270,
+            "tn": 920,
+            "fp": 3605,
+            "fn": 437,
+            "fp_fn_diff": 3168
+          },
+          "0.45": {
+            "accuracy": 0.6177677873338546,
+            "precision": 0.6127008032128514,
+            "recall": 0.8554406868757666,
+            "f1": 0.7140036563071298,
+            "tp": 4882,
+            "tn": 1439,
+            "fp": 3086,
+            "fn": 825,
+            "fp_fn_diff": 2261
+          },
+          "0.5": {
+            "accuracy": 0.6212861610633307,
+            "precision": 0.6334887787816963,
+            "recall": 0.7616961626073243,
+            "f1": 0.6917018060307105,
+            "tp": 4347,
+            "tn": 2010,
+            "fp": 2515,
+            "fn": 1360,
+            "fp_fn_diff": 1155
+          },
+          "0.52": {
+            "accuracy": 0.6226544175136826,
+            "precision": 0.6454001260239446,
+            "recall": 0.7178903101454355,
+            "f1": 0.6797179593529655,
+            "tp": 4097,
+            "tn": 2274,
+            "fp": 2251,
+            "fn": 1610,
+            "fp_fn_diff": 641
+          },
+          "0.55": {
+            "accuracy": 0.620992963252541,
+            "precision": 0.6648638903912024,
+            "recall": 0.6462239355177852,
+            "f1": 0.6554114092767016,
+            "tp": 3688,
+            "tn": 2666,
+            "fp": 1859,
+            "fn": 2019,
+            "fp_fn_diff": 160
+          },
+          "0.58": {
+            "accuracy": 0.60369429241595,
+            "precision": 0.6730930427493713,
+            "recall": 0.5628175924303487,
+            "f1": 0.6130355949995229,
+            "tp": 3212,
+            "tn": 2965,
+            "fp": 1560,
+            "fn": 2495,
+            "fp_fn_diff": 935
+          },
+          "0.6": {
+            "accuracy": 0.5967552775605942,
+            "precision": 0.6865706868067029,
+            "recall": 0.5097248992465393,
+            "f1": 0.585076427996782,
+            "tp": 2909,
+            "tn": 3197,
+            "fp": 1328,
+            "fn": 2798,
+            "fp_fn_diff": 1470
+          }
         }
       },
       "paperReference": {
-        "accuracy": 0.61079,
+        "accuracy": 0.628,
         "source": "Paper Baseline Replication",
-        "delta": 0.0027309066041422136,
-        "percentageGain": "+0.45%",
-        "improved": true
+        "delta": -0.00666354044548656,
+        "percentageGain": "-1.06%",
+        "improved": false
+      },
+      "paperComparison": {
+        "paperBaselineAccuracy": 0.628,
+        "improvementDelta": -0.00666354044548656,
+        "percentageGain": "-1.06%",
+        "improved": false
       },
       "improvementAgainstPaper": {
-        "paperBaselineAccuracy": 0.61079,
-        "accuracyDelta": 0.0027309066041422136,
-        "percentageGain": "+0.45%",
-        "improved": true
+        "paperBaselineAccuracy": 0.628,
+        "accuracyDelta": -0.00666354044548656,
+        "percentageGain": "-1.06%",
+        "improved": false
       },
       "confusionMatrix": {
         "labels": [
@@ -209,18 +350,18 @@
         ],
         "matrix": [
           [
-            483,
-            649
+            475,
+            657
           ],
           [
-            340,
-            1087
+            312,
+            1115
           ]
         ],
-        "truePositive": 1087,
-        "trueNegative": 483,
-        "falsePositive": 649,
-        "falseNegative": 340
+        "truePositive": 1115,
+        "trueNegative": 475,
+        "falsePositive": 657,
+        "falseNegative": 312
       },
       "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\logistic_regression"
     },
@@ -228,7 +369,7 @@
       "id": "multinomial_nb",
       "name": "Multinomial Naive Bayes",
       "type": "classical_ml",
-      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
       "status": "trained",
       "parameters": {
         "alpha": 1.0,
@@ -236,7 +377,7 @@
         "fit_prior": true,
         "force_alpha": true
       },
-      "trainingTime": 0.43281370000022434,
+      "trainingTime": 0.003954699999667355,
       "training": {
         "count": 10232,
         "percentage": 80.0
@@ -251,93 +392,216 @@
         "percentage": 20.0,
         "metrics": {
           "accuracy": 0.6088315748339195,
-          "precision": 0.6160130718954249,
-          "recall": 0.7925718290119131,
-          "f1": 0.6932270916334662,
-          "roc_auc": 0.6432952572918549,
-          "rocAuc": 0.6432952572918549,
+          "precision": 0.605759682224429,
+          "recall": 0.8549404344779257,
+          "f1": 0.7090961929671608,
+          "roc_auc": 0.6612881059624951,
+          "rocAuc": 0.6612881059624951,
           "confusion_matrix": [
             [
-              427,
-              705
+              338,
+              794
             ],
             [
-              296,
-              1131
+              207,
+              1220
             ]
           ],
-          "tn": 427,
-          "fp": 705,
-          "fn": 296,
-          "tp": 1131
+          "tn": 338,
+          "fp": 794,
+          "fn": 207,
+          "tp": 1220
+        },
+        "metricsAtTunedThreshold": {
+          "threshold": 0.55,
+          "accuracy": 0.6193825713169206,
+          "precision": 0.6286201022146508,
+          "recall": 0.7757533286615277,
+          "f1": 0.6944792973651192,
+          "roc_auc": 0.6612881059624951,
+          "rocAuc": 0.6612881059624951,
+          "confusion_matrix": [
+            [
+              478,
+              654
+            ],
+            [
+              320,
+              1107
+            ]
+          ],
+          "tn": 478,
+          "fp": 654,
+          "fn": 320,
+          "tp": 1107
         }
       },
       "metrics": {
         "accuracy": 0.6088315748339195,
-        "precision": 0.6160130718954249,
-        "recall": 0.7925718290119131,
-        "f1": 0.6932270916334662,
-        "roc_auc": 0.6432952572918549,
-        "rocAuc": 0.6432952572918549,
+        "precision": 0.605759682224429,
+        "recall": 0.8549404344779257,
+        "f1": 0.7090961929671608,
+        "roc_auc": 0.6612881059624951,
+        "rocAuc": 0.6612881059624951,
         "confusion_matrix": [
           [
-            427,
-            705
+            338,
+            794
           ],
           [
-            296,
-            1131
+            207,
+            1220
           ]
         ],
-        "tn": 427,
-        "fp": 705,
-        "fn": 296,
-        "tp": 1131
+        "tn": 338,
+        "fp": 794,
+        "fn": 207,
+        "tp": 1220
       },
       "crossValidation": {
         "folds": 5,
         "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
         "mean": {
-          "accuracy": 0.6128822142027934,
-          "f1": 0.6932892672832816,
-          "precision": 0.6212336055151522,
-          "recall": 0.7843011092675335
+          "accuracy": 0.622849927963627,
+          "f1": 0.7164502948418626,
+          "precision": 0.616968945336809,
+          "recall": 0.8542145873208588,
+          "roc_auc": 0.6606998427480407
         },
         "std": {
-          "accuracy": 0.010979658739469933,
-          "f1": 0.0071983866443235565,
-          "precision": 0.008883634868681808,
-          "recall": 0.0053387113496750896
+          "accuracy": 0.011689148316464863,
+          "f1": 0.00823694670991858,
+          "precision": 0.00801250627099827,
+          "recall": 0.009406235457123756
         },
         "scores": {
           "accuracy": [
-            0.6072300928187592,
-            0.6077186126038104,
-            0.6197458455522972,
-            0.6304985337243402,
-            0.5992179863147605
+            0.6248168050806058,
+            0.6204201270151442,
+            0.6265884652981427,
+            0.6392961876832844,
+            0.603128054740958
           ],
           "f1": [
-            0.6893353941267388,
-            0.6896018554310012,
-            0.6963309914129586,
-            0.7058365758754864,
-            0.6853415195702226
+            0.7192982456140351,
+            0.7127541589648798,
+            0.7182890855457227,
+            0.7284768211920529,
+            0.7034331628926224
+          ],
+          "precision": [
+            0.617314930991217,
+            0.6167626359564939,
+            0.6199872692552514,
+            0.6277742549143944,
+            0.6030056355666875
+          ],
+          "recall": [
+            0.861646234676007,
+            0.8441330998248686,
+            0.8536371603856266,
+            0.8676599474145487,
+            0.8439964943032428
           ]
+        },
+        "thresholdAnalysis": {
+          "0.4": {
+            "accuracy": 0.5920641125879593,
+            "precision": 0.5817948991569737,
+            "recall": 0.9553180304888733,
+            "f1": 0.7231728345934474,
+            "tp": 5452,
+            "tn": 606,
+            "fp": 3919,
+            "fn": 255,
+            "fp_fn_diff": 3664
+          },
+          "0.45": {
+            "accuracy": 0.6086786551993745,
+            "precision": 0.5972142938691631,
+            "recall": 0.9165936569125636,
+            "f1": 0.7232130512926863,
+            "tp": 5231,
+            "tn": 997,
+            "fp": 3528,
+            "fn": 476,
+            "fp_fn_diff": 3052
+          },
+          "0.5": {
+            "accuracy": 0.6228498827208757,
+            "precision": 0.6169324221716022,
+            "recall": 0.8542141230068337,
+            "f1": 0.7164376515541186,
+            "tp": 4875,
+            "tn": 1498,
+            "fp": 3027,
+            "fn": 832,
+            "fp_fn_diff": 2195
+          },
+          "0.52": {
+            "accuracy": 0.6206997654417513,
+            "precision": 0.6217658042144572,
+            "recall": 0.8168915367093044,
+            "f1": 0.7060961756910261,
+            "tp": 4662,
+            "tn": 1689,
+            "fp": 2836,
+            "fn": 1045,
+            "fp_fn_diff": 1791
+          },
+          "0.55": {
+            "accuracy": 0.6235340109460517,
+            "precision": 0.6348698560418787,
+            "recall": 0.7650254073944279,
+            "f1": 0.6938970120788303,
+            "tp": 4366,
+            "tn": 2014,
+            "fp": 2511,
+            "fn": 1341,
+            "fp_fn_diff": 1170
+          },
+          "0.58": {
+            "accuracy": 0.6214816262705238,
+            "precision": 0.6493971977842946,
+            "recall": 0.6984405116523568,
+            "f1": 0.6730265934993668,
+            "tp": 3986,
+            "tn": 2373,
+            "fp": 2152,
+            "fn": 1721,
+            "fp_fn_diff": 431
+          },
+          "0.6": {
+            "accuracy": 0.6148358092259578,
+            "precision": 0.6563939071909316,
+            "recall": 0.6493779568950412,
+            "f1": 0.6528670835902405,
+            "tp": 3706,
+            "tn": 2585,
+            "fp": 1940,
+            "fn": 2001,
+            "fp_fn_diff": 61
+          }
         }
       },
       "paperReference": {
-        "accuracy": 0.60688,
+        "accuracy": 0.612,
         "source": "Paper Baseline Replication",
-        "delta": 0.0019515748339195005,
-        "percentageGain": "+0.32%",
-        "improved": true
+        "delta": -0.003168425166080513,
+        "percentageGain": "-0.52%",
+        "improved": false
+      },
+      "paperComparison": {
+        "paperBaselineAccuracy": 0.612,
+        "improvementDelta": -0.003168425166080513,
+        "percentageGain": "-0.52%",
+        "improved": false
       },
       "improvementAgainstPaper": {
-        "paperBaselineAccuracy": 0.60688,
-        "accuracyDelta": 0.0019515748339195005,
-        "percentageGain": "+0.32%",
-        "improved": true
+        "paperBaselineAccuracy": 0.612,
+        "accuracyDelta": -0.003168425166080513,
+        "percentageGain": "-0.52%",
+        "improved": false
       },
       "confusionMatrix": {
         "labels": [
@@ -346,42 +610,47 @@
         ],
         "matrix": [
           [
-            427,
-            705
+            338,
+            794
           ],
           [
-            296,
-            1131
+            207,
+            1220
           ]
         ],
-        "truePositive": 1131,
-        "trueNegative": 427,
-        "falsePositive": 705,
-        "falseNegative": 296
+        "truePositive": 1220,
+        "trueNegative": 338,
+        "falsePositive": 794,
+        "falseNegative": 207
       },
       "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\multinomial_nb"
     },
     {
       "id": "linear_svm",
-      "name": "Linear Support Vector Machine",
+      "name": "Linear SVM",
       "type": "classical_ml",
-      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
       "status": "trained",
       "parameters": {
-        "C": 1.0,
-        "class_weight": null,
-        "dual": "auto",
-        "fit_intercept": true,
-        "intercept_scaling": 1,
-        "loss": "squared_hinge",
-        "max_iter": 1000,
-        "multi_class": "ovr",
-        "penalty": "l2",
-        "random_state": 42,
-        "tol": 0.0001,
-        "verbose": 0
+        "cv": 3,
+        "ensemble": "auto",
+        "estimator__C": 0.1,
+        "estimator__class_weight": null,
+        "estimator__dual": "auto",
+        "estimator__fit_intercept": true,
+        "estimator__intercept_scaling": 1,
+        "estimator__loss": "squared_hinge",
+        "estimator__max_iter": 2000,
+        "estimator__multi_class": "ovr",
+        "estimator__penalty": "l2",
+        "estimator__random_state": 42,
+        "estimator__tol": 0.0001,
+        "estimator__verbose": 0,
+        "estimator": "LinearSVC(C=0.1, max_iter=2000, random_state=42)",
+        "method": "sigmoid",
+        "n_jobs": null
       },
-      "trainingTime": 0.5350502999999662,
+      "trainingTime": 0.0485419999986334,
       "training": {
         "count": 10232,
         "percentage": 80.0
@@ -395,93 +664,216 @@
         "count": 2559,
         "percentage": 20.0,
         "metrics": {
-          "accuracy": 0.5740523642047675,
-          "precision": 0.6089204912734324,
-          "recall": 0.6601261387526279,
-          "f1": 0.6334902488231339,
-          "roc_auc": 0.6049862445863595,
-          "rocAuc": 0.6049862445863595,
+          "accuracy": 0.6240719030871434,
+          "precision": 0.63083849184018,
+          "recall": 0.7855641205325858,
+          "f1": 0.6997503121098627,
+          "roc_auc": 0.6703684123206906,
+          "rocAuc": 0.6703684123206906,
           "confusion_matrix": [
             [
-              527,
-              605
+              476,
+              656
             ],
             [
-              485,
-              942
+              306,
+              1121
             ]
           ],
-          "tn": 527,
-          "fp": 605,
-          "fn": 485,
-          "tp": 942
+          "tn": 476,
+          "fp": 656,
+          "fn": 306,
+          "tp": 1121
+        },
+        "metricsAtTunedThreshold": {
+          "threshold": 0.55,
+          "accuracy": 0.6260257913247362,
+          "precision": 0.6629680998613038,
+          "recall": 0.6699369306236861,
+          "f1": 0.6664342976646915,
+          "roc_auc": 0.6703684123206906,
+          "rocAuc": 0.6703684123206906,
+          "confusion_matrix": [
+            [
+              646,
+              486
+            ],
+            [
+              471,
+              956
+            ]
+          ],
+          "tn": 646,
+          "fp": 486,
+          "fn": 471,
+          "tp": 956
         }
       },
       "metrics": {
-        "accuracy": 0.5740523642047675,
-        "precision": 0.6089204912734324,
-        "recall": 0.6601261387526279,
-        "f1": 0.6334902488231339,
-        "roc_auc": 0.6049862445863595,
-        "rocAuc": 0.6049862445863595,
+        "accuracy": 0.6240719030871434,
+        "precision": 0.63083849184018,
+        "recall": 0.7855641205325858,
+        "f1": 0.6997503121098627,
+        "roc_auc": 0.6703684123206906,
+        "rocAuc": 0.6703684123206906,
         "confusion_matrix": [
           [
-            527,
-            605
+            476,
+            656
           ],
           [
-            485,
-            942
+            306,
+            1121
           ]
         ],
-        "tn": 527,
-        "fp": 605,
-        "fn": 485,
-        "tp": 942
+        "tn": 476,
+        "fp": 656,
+        "fn": 306,
+        "tp": 1121
       },
       "crossValidation": {
         "folds": 5,
         "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
         "mean": {
-          "accuracy": 0.5921615735016935,
-          "f1": 0.6422597824389028,
-          "precision": 0.6287826503009006,
-          "recall": 0.6563858476679596
+          "accuracy": 0.6207967600107158,
+          "f1": 0.6912054327268307,
+          "precision": 0.6330695716148002,
+          "recall": 0.761168729307717,
+          "roc_auc": 0.6625926556058284
         },
         "std": {
-          "accuracy": 0.010862223077930331,
-          "f1": 0.009300295517275303,
-          "precision": 0.009785597161524823,
-          "recall": 0.010696021132416302
+          "accuracy": 0.016393832767825293,
+          "f1": 0.014750176108019682,
+          "precision": 0.011214049396501183,
+          "recall": 0.020403247394838637
         },
         "scores": {
           "accuracy": [
-            0.5906204201270151,
-            0.5964826575476306,
-            0.5967741935483871,
-            0.604594330400782,
-            0.572336265884653
+            0.6292134831460674,
+            0.6199316072300928,
+            0.6089931573802542,
+            0.6466275659824047,
+            0.5992179863147605
           ],
           "f1": [
-            0.6384814495254529,
-            0.6497031382527566,
-            0.6436285097192225,
-            0.6529386529386529,
-            0.6265471617584294
+            0.7008277493102089,
+            0.6888,
+            0.6784565916398714,
+            0.7141162514827996,
+            0.6738265712012729
+          ],
+          "precision": [
+            0.6372759856630824,
+            0.634020618556701,
+            0.6265775798069785,
+            0.6505763688760807,
+            0.616897305171158
+          ],
+          "recall": [
+            0.7784588441330998,
+            0.7539404553415061,
+            0.7397020157756354,
+            0.7914110429447853,
+            0.7423312883435583
           ]
+        },
+        "thresholdAnalysis": {
+          "0.4": {
+            "accuracy": 0.6037920250195465,
+            "precision": 0.5922948073701843,
+            "recall": 0.929384965831435,
+            "f1": 0.7235029327513299,
+            "tp": 5304,
+            "tn": 874,
+            "fp": 3651,
+            "fn": 403,
+            "fp_fn_diff": 3248
+          },
+          "0.45": {
+            "accuracy": 0.6137607505863957,
+            "precision": 0.6087764968389736,
+            "recall": 0.8605221657613458,
+            "f1": 0.7130826194279076,
+            "tp": 4911,
+            "tn": 1369,
+            "fp": 3156,
+            "fn": 796,
+            "fp_fn_diff": 2360
+          },
+          "0.5": {
+            "accuracy": 0.6207974980453479,
+            "precision": 0.6331438565806734,
+            "recall": 0.7611704923777817,
+            "f1": 0.6912794398472311,
+            "tp": 4344,
+            "tn": 2008,
+            "fp": 2517,
+            "fn": 1363,
+            "fp_fn_diff": 1154
+          },
+          "0.52": {
+            "accuracy": 0.6248045347928068,
+            "precision": 0.6478784040531982,
+            "recall": 0.7170141930961976,
+            "f1": 0.6806953339432754,
+            "tp": 4092,
+            "tn": 2301,
+            "fp": 2224,
+            "fn": 1615,
+            "fp_fn_diff": 609
+          },
+          "0.55": {
+            "accuracy": 0.6202111024237685,
+            "precision": 0.6655755591925805,
+            "recall": 0.6413176800420536,
+            "f1": 0.6532214884883099,
+            "tp": 3660,
+            "tn": 2686,
+            "fp": 1839,
+            "fn": 2047,
+            "fp_fn_diff": 208
+          },
+          "0.58": {
+            "accuracy": 0.6076035965598123,
+            "precision": 0.681311615945135,
+            "recall": 0.5570352199053794,
+            "f1": 0.6129374337221634,
+            "tp": 3179,
+            "tn": 3038,
+            "fp": 1487,
+            "fn": 2528,
+            "fp_fn_diff": 1041
+          },
+          "0.6": {
+            "accuracy": 0.5988076622361219,
+            "precision": 0.6960352422907489,
+            "recall": 0.49833537760644825,
+            "f1": 0.5808230368630655,
+            "tp": 2844,
+            "tn": 3283,
+            "fp": 1242,
+            "fn": 2863,
+            "fp_fn_diff": 1621
+          }
         }
       },
       "paperReference": {
-        "accuracy": 0.57562,
+        "accuracy": 0.626,
         "source": "Paper Baseline Replication",
-        "delta": -0.0015676357952325581,
-        "percentageGain": "-0.27%",
+        "delta": -0.0019280969128565584,
+        "percentageGain": "-0.31%",
+        "improved": false
+      },
+      "paperComparison": {
+        "paperBaselineAccuracy": 0.626,
+        "improvementDelta": -0.0019280969128565584,
+        "percentageGain": "-0.31%",
         "improved": false
       },
       "improvementAgainstPaper": {
-        "paperBaselineAccuracy": 0.57562,
-        "accuracyDelta": -0.0015676357952325581,
-        "percentageGain": "-0.27%",
+        "paperBaselineAccuracy": 0.626,
+        "accuracyDelta": -0.0019280969128565584,
+        "percentageGain": "-0.31%",
         "improved": false
       },
       "confusionMatrix": {
@@ -491,18 +883,18 @@
         ],
         "matrix": [
           [
-            527,
-            605
+            476,
+            656
           ],
           [
-            485,
-            942
+            306,
+            1121
           ]
         ],
-        "truePositive": 942,
-        "trueNegative": 527,
-        "falsePositive": 605,
-        "falseNegative": 485
+        "truePositive": 1121,
+        "trueNegative": 476,
+        "falsePositive": 656,
+        "falseNegative": 306
       },
       "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\linear_svm"
     },
@@ -510,24 +902,24 @@
       "id": "decision_tree",
       "name": "Decision Tree",
       "type": "classical_ml",
-      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
       "status": "trained",
       "parameters": {
         "ccp_alpha": 0.0,
         "class_weight": null,
         "criterion": "gini",
-        "max_depth": null,
+        "max_depth": 20,
         "max_features": null,
         "max_leaf_nodes": null,
         "min_impurity_decrease": 0.0,
         "min_samples_leaf": 1,
-        "min_samples_split": 2,
+        "min_samples_split": 5,
         "min_weight_fraction_leaf": 0.0,
         "monotonic_cst": null,
         "random_state": 42,
         "splitter": "best"
       },
-      "trainingTime": 4.004778200000146,
+      "trainingTime": 0.9026145999996515,
       "training": {
         "count": 10232,
         "percentage": 80.0
@@ -541,93 +933,216 @@
         "count": 2559,
         "percentage": 20.0,
         "metrics": {
-          "accuracy": 0.5537319265338023,
-          "precision": 0.5949367088607594,
-          "recall": 0.6257883672039243,
-          "f1": 0.6099726775956285,
-          "roc_auc": 0.5441776590291723,
-          "rocAuc": 0.5441776590291723,
+          "accuracy": 0.5705353653771005,
+          "precision": 0.6074705111402359,
+          "recall": 0.649614576033637,
+          "f1": 0.6278360988824924,
+          "roc_auc": 0.5695867928219275,
+          "rocAuc": 0.5695867928219275,
           "confusion_matrix": [
             [
-              524,
-              608
+              533,
+              599
             ],
             [
-              534,
-              893
+              500,
+              927
             ]
           ],
-          "tn": 524,
-          "fp": 608,
-          "fn": 534,
-          "tp": 893
+          "tn": 533,
+          "fp": 599,
+          "fn": 500,
+          "tp": 927
+        },
+        "metricsAtTunedThreshold": {
+          "threshold": 0.5,
+          "accuracy": 0.5705353653771005,
+          "precision": 0.6074705111402359,
+          "recall": 0.649614576033637,
+          "f1": 0.6278360988824924,
+          "roc_auc": 0.5695867928219275,
+          "rocAuc": 0.5695867928219275,
+          "confusion_matrix": [
+            [
+              533,
+              599
+            ],
+            [
+              500,
+              927
+            ]
+          ],
+          "tn": 533,
+          "fp": 599,
+          "fn": 500,
+          "tp": 927
         }
       },
       "metrics": {
-        "accuracy": 0.5537319265338023,
-        "precision": 0.5949367088607594,
-        "recall": 0.6257883672039243,
-        "f1": 0.6099726775956285,
-        "roc_auc": 0.5441776590291723,
-        "rocAuc": 0.5441776590291723,
+        "accuracy": 0.5705353653771005,
+        "precision": 0.6074705111402359,
+        "recall": 0.649614576033637,
+        "f1": 0.6278360988824924,
+        "roc_auc": 0.5695867928219275,
+        "rocAuc": 0.5695867928219275,
         "confusion_matrix": [
           [
-            524,
-            608
+            533,
+            599
           ],
           [
-            534,
-            893
+            500,
+            927
           ]
         ],
-        "tn": 524,
-        "fp": 608,
-        "fn": 534,
-        "tp": 893
+        "tn": 533,
+        "fp": 599,
+        "fn": 500,
+        "tp": 927
       },
       "crossValidation": {
         "folds": 5,
         "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
         "mean": {
-          "accuracy": 0.5542429829600669,
-          "f1": 0.6031937878626984,
-          "precision": 0.599018986160226,
-          "recall": 0.6074990291798603
+          "accuracy": 0.5608847508763988,
+          "f1": 0.6112241222349152,
+          "precision": 0.6034457407202547,
+          "recall": 0.6206311175099115,
+          "roc_auc": 0.5644446763367953
         },
         "std": {
-          "accuracy": 0.012334094130775106,
-          "f1": 0.011460727866808318,
-          "precision": 0.010919749147703977,
-          "recall": 0.01364819823405682
+          "accuracy": 0.012809472527431209,
+          "f1": 0.022118153385549316,
+          "precision": 0.00912805229748613,
+          "recall": 0.04151581713416185
         },
         "scores": {
           "accuracy": [
-            0.5500732779677577,
-            0.5442110405471422,
-            0.5610948191593352,
-            0.5410557184750733,
-            0.5747800586510264
+            0.572056668295066,
+            0.5769418661455789,
+            0.5434995112414467,
+            0.5625610948191594,
+            0.5493646138807429
           ],
           "f1": [
-            0.6018158236057068,
-            0.5983641842445114,
-            0.606140350877193,
-            0.5872527472527472,
-            0.6223958333333334
+            0.6233877901977644,
+            0.636744966442953,
+            0.5981067125645438,
+            0.6231578947368421,
+            0.5747232472324724
+          ],
+          "precision": [
+            0.612331081081081,
+            0.6111111111111112,
+            0.5874894336432798,
+            0.5996758508914101,
+            0.6066212268743915
+          ],
+          "recall": [
+            0.6348511383537653,
+            0.6646234676007006,
+            0.6091148115687993,
+            0.6485539000876425,
+            0.5460122699386503
           ]
+        },
+        "thresholdAnalysis": {
+          "0.4": {
+            "accuracy": 0.5586395621579359,
+            "precision": 0.5706489500533871,
+            "recall": 0.8428246013667426,
+            "f1": 0.680531975099038,
+            "tp": 4810,
+            "tn": 906,
+            "fp": 3619,
+            "fn": 897,
+            "fp_fn_diff": 2722
+          },
+          "0.45": {
+            "accuracy": 0.5584440969507428,
+            "precision": 0.5705637982195846,
+            "recall": 0.8422989311371999,
+            "f1": 0.680300028304557,
+            "tp": 4807,
+            "tn": 907,
+            "fp": 3618,
+            "fn": 900,
+            "fp_fn_diff": 2718
+          },
+          "0.5": {
+            "accuracy": 0.5608874120406567,
+            "precision": 0.6034071550255536,
+            "recall": 0.620641317680042,
+            "f1": 0.6119029109441133,
+            "tp": 3542,
+            "tn": 2197,
+            "fp": 2328,
+            "fn": 2165,
+            "fp_fn_diff": 163
+          },
+          "0.52": {
+            "accuracy": 0.5608874120406567,
+            "precision": 0.6034071550255536,
+            "recall": 0.620641317680042,
+            "f1": 0.6119029109441133,
+            "tp": 3542,
+            "tn": 2197,
+            "fp": 2328,
+            "fn": 2165,
+            "fp_fn_diff": 163
+          },
+          "0.55": {
+            "accuracy": 0.555512118842846,
+            "precision": 0.6094015480460638,
+            "recall": 0.5656211669879095,
+            "f1": 0.5866957470010905,
+            "tp": 3228,
+            "tn": 2456,
+            "fp": 2069,
+            "fn": 2479,
+            "fp_fn_diff": 410
+          },
+          "0.58": {
+            "accuracy": 0.5477912431587177,
+            "precision": 0.6120331950207469,
+            "recall": 0.5169090590502892,
+            "f1": 0.5604635698679585,
+            "tp": 2950,
+            "tn": 2655,
+            "fp": 1870,
+            "fn": 2757,
+            "fp_fn_diff": 887
+          },
+          "0.6": {
+            "accuracy": 0.5409499609069586,
+            "precision": 0.6224539282250242,
+            "recall": 0.4497984930786753,
+            "f1": 0.5222256128572882,
+            "tp": 2567,
+            "tn": 2968,
+            "fp": 1557,
+            "fn": 3140,
+            "fp_fn_diff": 1583
+          }
         }
       },
       "paperReference": {
-        "accuracy": 0.56311,
+        "accuracy": 0.571,
         "source": "Paper Baseline Replication",
-        "delta": -0.009378073466197678,
-        "percentageGain": "-1.67%",
+        "delta": -0.00046463462289947355,
+        "percentageGain": "-0.08%",
+        "improved": false
+      },
+      "paperComparison": {
+        "paperBaselineAccuracy": 0.571,
+        "improvementDelta": -0.00046463462289947355,
+        "percentageGain": "-0.08%",
         "improved": false
       },
       "improvementAgainstPaper": {
-        "paperBaselineAccuracy": 0.56311,
-        "accuracyDelta": -0.009378073466197678,
-        "percentageGain": "-1.67%",
+        "paperBaselineAccuracy": 0.571,
+        "accuracyDelta": -0.00046463462289947355,
+        "percentageGain": "-0.08%",
         "improved": false
       },
       "confusionMatrix": {
@@ -637,18 +1152,18 @@
         ],
         "matrix": [
           [
-            524,
-            608
+            533,
+            599
           ],
           [
-            534,
-            893
+            500,
+            927
           ]
         ],
-        "truePositive": 893,
-        "trueNegative": 524,
-        "falsePositive": 608,
-        "falseNegative": 534
+        "truePositive": 927,
+        "trueNegative": 533,
+        "falsePositive": 599,
+        "falseNegative": 500
       },
       "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\decision_tree"
     },
@@ -656,7 +1171,7 @@
       "id": "random_forest",
       "name": "Random Forest",
       "type": "classical_ml",
-      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
       "status": "trained",
       "parameters": {
         "bootstrap": true,
@@ -669,17 +1184,17 @@
         "max_samples": null,
         "min_impurity_decrease": 0.0,
         "min_samples_leaf": 1,
-        "min_samples_split": 2,
+        "min_samples_split": 5,
         "min_weight_fraction_leaf": 0.0,
         "monotonic_cst": null,
-        "n_estimators": 100,
+        "n_estimators": 200,
         "n_jobs": -1,
         "oob_score": false,
         "random_state": 42,
         "verbose": 0,
         "warm_start": false
       },
-      "trainingTime": 7.06122939999932,
+      "trainingTime": 3.1437256000008347,
       "training": {
         "count": 10232,
         "percentage": 80.0
@@ -693,93 +1208,216 @@
         "count": 2559,
         "percentage": 20.0,
         "metrics": {
-          "accuracy": 0.6111762407190309,
-          "precision": 0.6247113163972287,
-          "recall": 0.7582340574632095,
-          "f1": 0.6850269072491295,
-          "roc_auc": 0.6483600600236231,
-          "rocAuc": 0.6483600600236231,
+          "accuracy": 0.6252442360296991,
+          "precision": 0.6267605633802817,
+          "recall": 0.810791871058164,
+          "f1": 0.7069966391689582,
+          "roc_auc": 0.6713842824279853,
+          "rocAuc": 0.6713842824279853,
           "confusion_matrix": [
             [
-              482,
-              650
+              443,
+              689
             ],
             [
-              345,
-              1082
+              270,
+              1157
             ]
           ],
-          "tn": 482,
-          "fp": 650,
-          "fn": 345,
-          "tp": 1082
+          "tn": 443,
+          "fp": 689,
+          "fn": 270,
+          "tp": 1157
+        },
+        "metricsAtTunedThreshold": {
+          "threshold": 0.55,
+          "accuracy": 0.627979679562329,
+          "precision": 0.6511775938892426,
+          "recall": 0.7168885774351786,
+          "f1": 0.6824549699799867,
+          "roc_auc": 0.6713842824279853,
+          "rocAuc": 0.6713842824279853,
+          "confusion_matrix": [
+            [
+              584,
+              548
+            ],
+            [
+              404,
+              1023
+            ]
+          ],
+          "tn": 584,
+          "fp": 548,
+          "fn": 404,
+          "tp": 1023
         }
       },
       "metrics": {
-        "accuracy": 0.6111762407190309,
-        "precision": 0.6247113163972287,
-        "recall": 0.7582340574632095,
-        "f1": 0.6850269072491295,
-        "roc_auc": 0.6483600600236231,
-        "rocAuc": 0.6483600600236231,
+        "accuracy": 0.6252442360296991,
+        "precision": 0.6267605633802817,
+        "recall": 0.810791871058164,
+        "f1": 0.7069966391689582,
+        "roc_auc": 0.6713842824279853,
+        "rocAuc": 0.6713842824279853,
         "confusion_matrix": [
           [
-            482,
-            650
+            443,
+            689
           ],
           [
-            345,
-            1082
+            270,
+            1157
           ]
         ],
-        "tn": 482,
-        "fp": 650,
-        "fn": 345,
-        "tp": 1082
+        "tn": 443,
+        "fp": 689,
+        "fn": 270,
+        "tp": 1157
       },
       "crossValidation": {
         "folds": 5,
         "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
         "mean": {
-          "accuracy": 0.6052567212061042,
-          "f1": 0.6864034748010155,
-          "precision": 0.6162901634055753,
-          "recall": 0.7746592152703484
+          "accuracy": 0.6218728883935244,
+          "f1": 0.698016996713545,
+          "precision": 0.6292634320878661,
+          "recall": 0.7839473163154574,
+          "roc_auc": 0.65473207886968
         },
         "std": {
-          "accuracy": 0.009954986693379084,
-          "f1": 0.00851816306085562,
-          "precision": 0.0073737198835843905,
-          "recall": 0.014443270866915466
+          "accuracy": 0.012745599376973582,
+          "f1": 0.012510189357943683,
+          "precision": 0.008573668671368767,
+          "recall": 0.022977772510314295
         },
         "scores": {
           "accuracy": [
-            0.6248168050806058,
-            0.5989252564728872,
-            0.6036168132942327,
-            0.6006842619745846,
-            0.5982404692082112
+            0.6321446018563752,
+            0.6082071323888617,
+            0.6094819159335289,
+            0.6407624633431085,
+            0.6187683284457478
           ],
           "f1": [
-            0.703016241299304,
-            0.6826439891766525,
-            0.6805829066561638,
-            0.6802348336594912,
-            0.685539403213466
+            0.7080263668088407,
+            0.6898685228151585,
+            0.678987545198875,
+            0.7138964577656676,
+            0.6993060909791827
+          ],
+          "precision": [
+            0.6353514265831594,
+            0.6177285318559557,
+            0.6268545994065282,
+            0.6421568627450981,
+            0.6242257398485891
+          ],
+          "recall": [
+            0.7994746059544658,
+            0.7810858143607706,
+            0.740578439964943,
+            0.803680981595092,
+            0.7949167397020158
           ]
+        },
+        "thresholdAnalysis": {
+          "0.4": {
+            "accuracy": 0.5977326035965598,
+            "precision": 0.5892516548861214,
+            "recall": 0.9202733485193622,
+            "f1": 0.7184678522571819,
+            "tp": 5252,
+            "tn": 864,
+            "fp": 3661,
+            "fn": 455,
+            "fp_fn_diff": 3206
+          },
+          "0.45": {
+            "accuracy": 0.6135652853792025,
+            "precision": 0.6079832450412714,
+            "recall": 0.864727527597687,
+            "f1": 0.7139756944444444,
+            "tp": 4935,
+            "tn": 1343,
+            "fp": 3182,
+            "fn": 772,
+            "fp_fn_diff": 2410
+          },
+          "0.5": {
+            "accuracy": 0.62187255668491,
+            "precision": 0.6292545710267229,
+            "recall": 0.7839495356579639,
+            "f1": 0.698135289069205,
+            "tp": 4474,
+            "tn": 1889,
+            "fp": 2636,
+            "fn": 1233,
+            "fp_fn_diff": 1403
+          },
+          "0.52": {
+            "accuracy": 0.6221657544956998,
+            "precision": 0.6385252069224981,
+            "recall": 0.7434729279831785,
+            "f1": 0.6870142487046632,
+            "tp": 4243,
+            "tn": 2123,
+            "fp": 2402,
+            "fn": 1464,
+            "fp_fn_diff": 938
+          },
+          "0.55": {
+            "accuracy": 0.6199179046129789,
+            "precision": 0.6525167785234899,
+            "recall": 0.6814438408971438,
+            "f1": 0.6666666666666666,
+            "tp": 3889,
+            "tn": 2454,
+            "fp": 2071,
+            "fn": 1818,
+            "fp_fn_diff": 253
+          },
+          "0.58": {
+            "accuracy": 0.6068217357310399,
+            "precision": 0.6636858475894246,
+            "recall": 0.5982127212195549,
+            "f1": 0.62925076029859,
+            "tp": 3414,
+            "tn": 2795,
+            "fp": 1730,
+            "fn": 2293,
+            "fp_fn_diff": 563
+          },
+          "0.6": {
+            "accuracy": 0.6018373729476153,
+            "precision": 0.6768464370803552,
+            "recall": 0.5475731557736113,
+            "f1": 0.6053855094924447,
+            "tp": 3125,
+            "tn": 3033,
+            "fp": 1492,
+            "fn": 2582,
+            "fp_fn_diff": 1090
+          }
         }
       },
       "paperReference": {
-        "accuracy": 0.60883,
+        "accuracy": 0.625,
         "source": "Paper Baseline Replication",
-        "delta": 0.00234624071903089,
-        "percentageGain": "+0.39%",
+        "delta": 0.0002442360296991408,
+        "percentageGain": "+0.04%",
+        "improved": true
+      },
+      "paperComparison": {
+        "paperBaselineAccuracy": 0.625,
+        "improvementDelta": 0.0002442360296991408,
+        "percentageGain": "+0.04%",
         "improved": true
       },
       "improvementAgainstPaper": {
-        "paperBaselineAccuracy": 0.60883,
-        "accuracyDelta": 0.00234624071903089,
-        "percentageGain": "+0.39%",
+        "paperBaselineAccuracy": 0.625,
+        "accuracyDelta": 0.0002442360296991408,
+        "percentageGain": "+0.04%",
         "improved": true
       },
       "confusionMatrix": {
@@ -789,18 +1427,18 @@
         ],
         "matrix": [
           [
-            482,
-            650
+            443,
+            689
           ],
           [
-            345,
-            1082
+            270,
+            1157
           ]
         ],
-        "truePositive": 1082,
-        "trueNegative": 482,
-        "falsePositive": 650,
-        "falseNegative": 345
+        "truePositive": 1157,
+        "trueNegative": 443,
+        "falsePositive": 689,
+        "falseNegative": 270
       },
       "artifactPath": "C:\\Users\\hetpa\\Desktop\\AML-Project-\\ml\\models\\liar\\random_forest"
     }

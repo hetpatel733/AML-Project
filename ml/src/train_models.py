@@ -1,4 +1,6 @@
+import argparse
 import json
+import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -36,12 +38,12 @@ from src.config import (
     get_model_path,
     get_vectorizer_path,
 )
-from src.data_preprocessing import load_dataset
+from src.data_preprocessing import LiarFeatureExtractor, clean_text_liar, load_dataset
 
 RANDOM_STATE = 42
 
-# Selected optimal TF-IDF parameters from training-set CV exploration
-TFIDF_CONFIG = {
+# Selected optimal TF-IDF parameters for ISOT
+ISOT_TFIDF_CONFIG = {
     "ngram_range": [1, 2],
     "sublinear_tf": True,
     "min_df": 2,
@@ -59,32 +61,75 @@ PAPER_BASELINES = {
         MODEL_RANDOM_FOREST: 0.99604,
     },
     "liar": {
-        MODEL_LOGISTIC_REGRESSION: 0.61079,
-        MODEL_MULTINOMIAL_NB: 0.60688,
-        MODEL_LINEAR_SVM: 0.57562,
-        MODEL_DECISION_TREE: 0.56311,
-        MODEL_RANDOM_FOREST: 0.60883,
+        MODEL_LOGISTIC_REGRESSION: 0.62800,
+        MODEL_MULTINOMIAL_NB: 0.62300,
+        MODEL_LINEAR_SVM: 0.62600,
+        MODEL_DECISION_TREE: 0.57100,
+        MODEL_RANDOM_FOREST: 0.62500,
     },
 }
 
 
-def build_model(model_name: str):
-    if model_name == MODEL_LOGISTIC_REGRESSION:
-        return LogisticRegression(C=1.0, max_iter=1000, random_state=RANDOM_STATE)
-    if model_name == MODEL_MULTINOMIAL_NB:
-        return MultinomialNB(alpha=1.0)
-    if model_name == MODEL_LINEAR_SVM:
-        return LinearSVC(C=1.0, random_state=RANDOM_STATE)
-    if model_name == MODEL_DECISION_TREE:
-        return DecisionTreeClassifier(random_state=RANDOM_STATE)
-    if model_name == MODEL_RANDOM_FOREST:
-        return RandomForestClassifier(
-            n_estimators=100,
-            max_depth=None,
-            random_state=RANDOM_STATE,
-            n_jobs=-1,
+def build_model(dataset: str, model_name: str):
+    if dataset == "liar":
+        if model_name == MODEL_LOGISTIC_REGRESSION:
+            return LogisticRegression(C=0.5, solver="liblinear", max_iter=1000, random_state=RANDOM_STATE)
+        if model_name == MODEL_MULTINOMIAL_NB:
+            return MultinomialNB(alpha=3.0, fit_prior=True)
+        if model_name == MODEL_LINEAR_SVM:
+            return LinearSVC(C=0.05, max_iter=3000, random_state=RANDOM_STATE)
+        if model_name == MODEL_DECISION_TREE:
+            return DecisionTreeClassifier(
+                criterion="entropy",
+                max_depth=8,
+                min_samples_split=30,
+                min_samples_leaf=4,
+                random_state=RANDOM_STATE,
+            )
+        if model_name == MODEL_RANDOM_FOREST:
+            return RandomForestClassifier(
+                n_estimators=200,
+                max_depth=50,
+                max_features="sqrt",
+                min_samples_leaf=2,
+                random_state=RANDOM_STATE,
+                n_jobs=-1,
+            )
+    else:
+        if model_name == MODEL_LOGISTIC_REGRESSION:
+            return LogisticRegression(C=1.0, max_iter=1000, random_state=RANDOM_STATE)
+        if model_name == MODEL_MULTINOMIAL_NB:
+            return MultinomialNB(alpha=1.0)
+        if model_name == MODEL_LINEAR_SVM:
+            return LinearSVC(C=1.0, random_state=RANDOM_STATE)
+        if model_name == MODEL_DECISION_TREE:
+            return DecisionTreeClassifier(random_state=RANDOM_STATE)
+        if model_name == MODEL_RANDOM_FOREST:
+            return RandomForestClassifier(
+                n_estimators=100,
+                max_depth=None,
+                random_state=RANDOM_STATE,
+                n_jobs=-1,
+            )
+    raise ValueError(f"Unknown model: {model_name} for dataset: {dataset}")
+
+
+def build_vectorizer(dataset: str):
+    if dataset == "liar":
+        return LiarFeatureExtractor(
+            word_ngram_range=(1, 2),
+            word_max_features=12000,
+            char_ngram_range=(3, 5),
+            char_max_features=8000,
+            context_max_features=3000,
         )
-    raise ValueError(f"Unknown model: {model_name}")
+    return TfidfVectorizer(
+        ngram_range=(ISOT_TFIDF_CONFIG["ngram_range"][0], ISOT_TFIDF_CONFIG["ngram_range"][1]),
+        sublinear_tf=ISOT_TFIDF_CONFIG["sublinear_tf"],
+        min_df=ISOT_TFIDF_CONFIG["min_df"],
+        max_df=ISOT_TFIDF_CONFIG["max_df"],
+        max_features=ISOT_TFIDF_CONFIG["max_features"],
+    )
 
 
 def _scores(model: Any, features) -> np.ndarray:
@@ -116,23 +161,17 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray, scores: np.ndarray
 
 def train_one(dataset: str, model_name: str, x_train, x_test, y_train, y_test) -> Dict[str, Any]:
     started = time.perf_counter()
-    
+
     # Preprocessing & Vectorization with selected configuration
-    vectorizer = TfidfVectorizer(
-        ngram_range=(TFIDF_CONFIG["ngram_range"][0], TFIDF_CONFIG["ngram_range"][1]),
-        sublinear_tf=TFIDF_CONFIG["sublinear_tf"],
-        min_df=TFIDF_CONFIG["min_df"],
-        max_df=TFIDF_CONFIG["max_df"],
-        max_features=TFIDF_CONFIG["max_features"],
-    )
-    
+    vectorizer = build_vectorizer(dataset)
+
     # Fit vectorizer strictly on training partition
     train_features = vectorizer.fit_transform(x_train)
     test_features = vectorizer.transform(x_test)
-    
+
     # 5-Fold Stratified Cross Validation on training features only
     skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
-    cv_model = build_model(model_name)
+    cv_model = build_model(dataset, model_name)
     cv_results = cross_validate(
         cv_model,
         train_features,
@@ -141,11 +180,11 @@ def train_one(dataset: str, model_name: str, x_train, x_test, y_train, y_test) -
         scoring=["accuracy", "f1", "precision", "recall"],
         n_jobs=-1,
     )
-    
+
     # Final Model Training on full 80% train split
-    model = build_model(model_name)
+    model = build_model(dataset, model_name)
     model.fit(train_features, y_train)
-    
+
     # Final Evaluation on untouched 20% test partition
     predictions = model.predict(test_features)
     scores = _scores(model, test_features)
@@ -194,14 +233,24 @@ def train_one(dataset: str, model_name: str, x_train, x_test, y_train, y_test) -
         },
     }
 
-    metadata = {
-        "dataset": dataset,
-        "model": model_name,
-        "name": MODEL_DISPLAY_NAMES[model_name],
-        "training_time_seconds": training_time,
-        "parameters": model.get_params(),
-        "tfidf": TFIDF_CONFIG,
-        "preprocessing": [
+    if dataset == "liar":
+        preprocessing_steps = [
+            "HTML entity decoding",
+            "lowercase conversion",
+            "URL and HTML tag removal",
+            "contraction expansion for negation retention",
+            "non-alphabetic character cleaning",
+            "whitespace normalization",
+            "WordNet lemmatization without aggressive stopword removal",
+            "Word TF-IDF (1,2) with sublinear TF",
+            "Char-WB TF-IDF (3,5) with sublinear TF",
+            "Subject, Speaker, Party, State, Job binary count vectors",
+            "Context venue/location TF-IDF (1,2)",
+            "Speaker credit history scaled continuous features",
+        ]
+        feature_repr = "Multi-modal Feature Extractor (Word (1,2) + Char-WB (3,5) TF-IDF + Metadata Categoricals & Scaled Credit History)"
+    else:
+        preprocessing_steps = [
             "HTML entity decoding",
             "lowercase conversion",
             "URL and HTML tag removal",
@@ -210,7 +259,17 @@ def train_one(dataset: str, model_name: str, x_train, x_test, y_train, y_test) -
             "whitespace normalization",
             "negation-preserving English stopword filtering",
             "WordNet lemmatization",
-        ],
+        ]
+        feature_repr = "TF-IDF (unigrams + bigrams, sublinear TF)"
+
+    metadata = {
+        "dataset": dataset,
+        "model": model_name,
+        "name": MODEL_DISPLAY_NAMES[model_name],
+        "training_time_seconds": training_time,
+        "parameters": model.get_params(),
+        "representation": feature_repr,
+        "preprocessing": preprocessing_steps,
         "train_count": len(y_train),
         "test_count": len(y_test),
         "metrics": metrics,
@@ -224,7 +283,7 @@ def train_one(dataset: str, model_name: str, x_train, x_test, y_train, y_test) -
         "id": model_name,
         "name": MODEL_DISPLAY_NAMES[model_name],
         "type": "classical_ml",
-        "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+        "representation": feature_repr,
         "status": "trained",
         "parameters": metadata["parameters"],
         "trainingTime": training_time,
@@ -258,6 +317,47 @@ def _class_distribution(labels: np.ndarray) -> Dict[str, int]:
 
 def write_benchmark(dataset: str, x_train, x_test, y_train, y_test, models) -> Path:
     total = len(y_train) + len(y_test)
+    if dataset == "liar":
+        preprocessing_dict = {
+            "lowercase": True,
+            "removePunctuation": True,
+            "removeSpecialCharacters": True,
+            "removeUrlsAndHtml": True,
+            "normalizeWhitespace": True,
+            "expandContractions": True,
+            "preserveNegationWords": True,
+            "removeStopwords": "retained (short-claim preservation)",
+            "lemmatization": "WordNet",
+            "tokenization": "word & character n-grams with contraction expansion",
+            "vectorizer": "LiarFeatureExtractor (Word TF-IDF + Char-WB TF-IDF + Metadata + Credit Counts)",
+            "wordNgramRange": [1, 2],
+            "wordMaxFeatures": 12000,
+            "charNgramRange": [3, 5],
+            "charMaxFeatures": 8000,
+            "metadataFeatures": ["subject", "speaker", "party", "state", "job", "context", "credit_history"],
+        }
+        exp_name = "Multi-Modal Feature Engineering Pipeline with Tuned Hyperparameters"
+    else:
+        preprocessing_dict = {
+            "lowercase": True,
+            "removePunctuation": True,
+            "removeSpecialCharacters": True,
+            "removeUrlsAndHtml": True,
+            "normalizeWhitespace": True,
+            "expandContractions": True,
+            "preserveNegationWords": True,
+            "removeStopwords": "custom (negation-preserving)",
+            "lemmatization": "WordNet",
+            "tokenization": "whitespace & alphabetic tokens with contraction expansion",
+            "vectorizer": "TF-IDF",
+            "ngramRange": ISOT_TFIDF_CONFIG["ngram_range"],
+            "sublinearTf": ISOT_TFIDF_CONFIG["sublinear_tf"],
+            "minDf": ISOT_TFIDF_CONFIG["min_df"],
+            "maxDf": ISOT_TFIDF_CONFIG["max_df"],
+            "maxFeatures": ISOT_TFIDF_CONFIG["max_features"],
+        }
+        exp_name = "Improved Preprocessing Pipeline with Negation Preservation & Sublinear TF-IDF"
+
     benchmark = {
         "dataset": {
             "id": dataset,
@@ -267,34 +367,17 @@ def write_benchmark(dataset: str, x_train, x_test, y_train, y_test, models) -> P
             "classes": ["FAKE", "REAL"],
             "classDistribution": _class_distribution(np.concatenate([y_train, y_test])),
             "labelMapping": {"0": "FAKE", "1": "REAL"},
-            "preprocessing": {
-                "lowercase": True,
-                "removePunctuation": True,
-                "removeSpecialCharacters": True,
-                "removeUrlsAndHtml": True,
-                "normalizeWhitespace": True,
-                "expandContractions": True,
-                "preserveNegationWords": True,
-                "removeStopwords": "custom (negation-preserving)",
-                "lemmatization": "WordNet",
-                "tokenization": "whitespace & alphabetic tokens with contraction expansion",
-                "vectorizer": "TF-IDF",
-                "ngramRange": TFIDF_CONFIG["ngram_range"],
-                "sublinearTf": TFIDF_CONFIG["sublinear_tf"],
-                "minDf": TFIDF_CONFIG["min_df"],
-                "maxDf": TFIDF_CONFIG["max_df"],
-                "maxFeatures": TFIDF_CONFIG["max_features"],
-            },
+            "preprocessing": preprocessing_dict,
         },
         "experiment": {
-            "version": "improved-preprocessing-v2",
-            "name": "Improved Preprocessing Pipeline with Negation Preservation & Sublinear TF-IDF",
+            "version": "improved-liar-v2" if dataset == "liar" else "improved-preprocessing-v2",
+            "name": exp_name,
             "trainingTimestamp": datetime.now(timezone.utc).isoformat(),
             "randomSeed": RANDOM_STATE,
             "split": "stratified 80% training / 20% testing",
             "validation": {
                 "used": False,
-                "reason": "No separate validation split. Preprocessing experiments conducted on 80% train split via 5-fold CV; final evaluation on untouched 20% test partition.",
+                "reason": "No separate validation split. Preprocessing and tuning conducted on 80% train split via 5-fold CV; final evaluation on untouched 20% test partition.",
             },
             "crossValidationOnTrain": {
                 "folds": 5,
@@ -337,7 +420,17 @@ def train_dataset(dataset: str) -> Path:
 
 
 def main() -> None:
-    for dataset in ("isot", "liar"):
+    parser = argparse.ArgumentParser(description="Train and benchmark fake news classification models.")
+    parser.add_argument(
+        "--dataset",
+        choices=["isot", "liar", "all"],
+        default="liar",
+        help="Dataset to train models on. Default is 'liar'.",
+    )
+    args = parser.parse_args()
+
+    datasets = ["isot", "liar"] if args.dataset == "all" else [args.dataset]
+    for dataset in datasets:
         benchmark_path = train_dataset(dataset)
         print(f"Wrote {benchmark_path}")
 

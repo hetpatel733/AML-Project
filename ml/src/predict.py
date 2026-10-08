@@ -11,7 +11,7 @@ from src.config import (
     get_model_path,
     get_vectorizer_path,
 )
-from src.data_preprocessing import clean_text
+from src.data_preprocessing import clean_text, clean_text_liar
 
 
 class NewsPredictor:
@@ -39,7 +39,7 @@ class NewsPredictor:
         self.load_models(dataset)
         if not self.models[dataset]:
             raise RuntimeError(f"No trained models are available for dataset {dataset}.")
-        cleaned_text = clean_text(text)
+        cleaned_text = clean_text_liar(text) if dataset.lower() == "liar" else clean_text(text)
         if model_name is not None:
             if model_name not in self.models[dataset]:
                 raise ValueError(f"Model {model_name} is not trained for dataset {dataset}.")
@@ -83,13 +83,15 @@ class NewsPredictor:
                 benchmark = json.load(file)
         benchmark_models = {item["id"]: item for item in benchmark.get("models", [])}
         results = []
+        raw_input = f"{title} {text}".strip()
+        cleaned_input = clean_text_liar(raw_input) if dataset.lower() == "liar" else clean_text(raw_input)
         for model_name in self.models[dataset]:
-            result = self._predict_classical(clean_text(f"{title} {text}"), dataset, model_name)
+            result = self._predict_classical(cleaned_input, dataset, model_name)
             metrics = benchmark_models.get(model_name, {}).get("metrics", {})
             results.append({
                 "model_id": model_name,
                 "model_name": benchmark_models.get(model_name, {}).get("name", model_name),
-                "vectorizer": "TF-IDF (unigrams + bigrams)",
+                "vectorizer": "Word TF-IDF (1,2) with Sublinear TF" if dataset.lower() == "liar" else "TF-IDF (unigrams + bigrams)",
                 "prediction": result["prediction"],
                 "confidence": result["confidence"],
                 "probabilities": result["probabilities"],

@@ -1,103 +1,207 @@
 {
   "dataset": "liar",
   "model": "linear_svm",
-  "name": "Linear Support Vector Machine",
-  "training_time_seconds": 0.5350502999999662,
+  "name": "Linear SVM",
+  "training_time_seconds": 0.0485419999986334,
   "parameters": {
-    "C": 1.0,
-    "class_weight": null,
-    "dual": "auto",
-    "fit_intercept": true,
-    "intercept_scaling": 1,
-    "loss": "squared_hinge",
-    "max_iter": 1000,
-    "multi_class": "ovr",
-    "penalty": "l2",
-    "random_state": 42,
-    "tol": 0.0001,
-    "verbose": 0
+    "cv": 3,
+    "ensemble": "auto",
+    "estimator__C": 0.1,
+    "estimator__class_weight": null,
+    "estimator__dual": "auto",
+    "estimator__fit_intercept": true,
+    "estimator__intercept_scaling": 1,
+    "estimator__loss": "squared_hinge",
+    "estimator__max_iter": 2000,
+    "estimator__multi_class": "ovr",
+    "estimator__penalty": "l2",
+    "estimator__random_state": 42,
+    "estimator__tol": 0.0001,
+    "estimator__verbose": 0,
+    "estimator": "LinearSVC(C=0.1, max_iter=2000, random_state=42)",
+    "method": "sigmoid",
+    "n_jobs": null
   },
-  "tfidf": {
-    "ngram_range": [
-      1,
-      2
-    ],
-    "sublinear_tf": true,
-    "min_df": 2,
-    "max_df": 0.98,
-    "max_features": 10000
-  },
+  "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 max features)",
   "preprocessing": [
     "HTML entity decoding",
-    "lowercase conversion",
+    "Lowercase transformation",
     "URL and HTML tag removal",
-    "contraction expansion for negation retention",
-    "non-alphabetic character cleaning",
-    "whitespace normalization",
-    "negation-preserving English stopword filtering",
-    "WordNet lemmatization"
+    "Contraction expansion for negation retention",
+    "Non-alphabetic character removal",
+    "Whitespace normalization",
+    "WordNet lemmatization without aggressive stopword deletion",
+    "Word TF-IDF (1,2) n-grams (min_df=2, max_features=25000)"
   ],
+  "optimal_threshold": 0.55,
   "train_count": 10232,
   "test_count": 2559,
   "metrics": {
-    "accuracy": 0.5740523642047675,
-    "precision": 0.6089204912734324,
-    "recall": 0.6601261387526279,
-    "f1": 0.6334902488231339,
-    "roc_auc": 0.6049862445863595,
-    "rocAuc": 0.6049862445863595,
+    "accuracy": 0.6240719030871434,
+    "precision": 0.63083849184018,
+    "recall": 0.7855641205325858,
+    "f1": 0.6997503121098627,
+    "roc_auc": 0.6703684123206906,
+    "rocAuc": 0.6703684123206906,
     "confusion_matrix": [
       [
-        527,
-        605
+        476,
+        656
       ],
       [
-        485,
-        942
+        306,
+        1121
       ]
     ],
-    "tn": 527,
-    "fp": 605,
-    "fn": 485,
-    "tp": 942
+    "tn": 476,
+    "fp": 656,
+    "fn": 306,
+    "tp": 1121
   },
-  "crossValidation": {
-    "folds": 5,
-    "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+  "metrics_tuned_threshold": {
+    "accuracy": 0.6260257913247362,
+    "precision": 0.6629680998613038,
+    "recall": 0.6699369306236861,
+    "f1": 0.6664342976646915,
+    "roc_auc": 0.6703684123206906,
+    "rocAuc": 0.6703684123206906,
+    "confusion_matrix": [
+      [
+        646,
+        486
+      ],
+      [
+        471,
+        956
+      ]
+    ],
+    "tn": 646,
+    "fp": 486,
+    "fn": 471,
+    "tp": 956
+  },
+  "cross_validation": {
     "mean": {
-      "accuracy": 0.5921615735016935,
-      "f1": 0.6422597824389028,
-      "precision": 0.6287826503009006,
-      "recall": 0.6563858476679596
+      "accuracy": 0.6207967600107158,
+      "f1": 0.6912054327268307,
+      "precision": 0.6330695716148002,
+      "recall": 0.761168729307717,
+      "roc_auc": 0.6625926556058284
     },
     "std": {
-      "accuracy": 0.010862223077930331,
-      "f1": 0.009300295517275303,
-      "precision": 0.009785597161524823,
-      "recall": 0.010696021132416302
+      "accuracy": 0.016393832767825293,
+      "f1": 0.014750176108019682,
+      "precision": 0.011214049396501183,
+      "recall": 0.020403247394838637
     },
     "scores": {
       "accuracy": [
-        0.5906204201270151,
-        0.5964826575476306,
-        0.5967741935483871,
-        0.604594330400782,
-        0.572336265884653
+        0.6292134831460674,
+        0.6199316072300928,
+        0.6089931573802542,
+        0.6466275659824047,
+        0.5992179863147605
       ],
       "f1": [
-        0.6384814495254529,
-        0.6497031382527566,
-        0.6436285097192225,
-        0.6529386529386529,
-        0.6265471617584294
+        0.7008277493102089,
+        0.6888,
+        0.6784565916398714,
+        0.7141162514827996,
+        0.6738265712012729
+      ],
+      "precision": [
+        0.6372759856630824,
+        0.634020618556701,
+        0.6265775798069785,
+        0.6505763688760807,
+        0.616897305171158
+      ],
+      "recall": [
+        0.7784588441330998,
+        0.7539404553415061,
+        0.7397020157756354,
+        0.7914110429447853,
+        0.7423312883435583
       ]
+    },
+    "threshold_analysis": {
+      "0.4": {
+        "accuracy": 0.6037920250195465,
+        "precision": 0.5922948073701843,
+        "recall": 0.929384965831435,
+        "f1": 0.7235029327513299,
+        "tp": 5304,
+        "tn": 874,
+        "fp": 3651,
+        "fn": 403,
+        "fp_fn_diff": 3248
+      },
+      "0.45": {
+        "accuracy": 0.6137607505863957,
+        "precision": 0.6087764968389736,
+        "recall": 0.8605221657613458,
+        "f1": 0.7130826194279076,
+        "tp": 4911,
+        "tn": 1369,
+        "fp": 3156,
+        "fn": 796,
+        "fp_fn_diff": 2360
+      },
+      "0.5": {
+        "accuracy": 0.6207974980453479,
+        "precision": 0.6331438565806734,
+        "recall": 0.7611704923777817,
+        "f1": 0.6912794398472311,
+        "tp": 4344,
+        "tn": 2008,
+        "fp": 2517,
+        "fn": 1363,
+        "fp_fn_diff": 1154
+      },
+      "0.52": {
+        "accuracy": 0.6248045347928068,
+        "precision": 0.6478784040531982,
+        "recall": 0.7170141930961976,
+        "f1": 0.6806953339432754,
+        "tp": 4092,
+        "tn": 2301,
+        "fp": 2224,
+        "fn": 1615,
+        "fp_fn_diff": 609
+      },
+      "0.55": {
+        "accuracy": 0.6202111024237685,
+        "precision": 0.6655755591925805,
+        "recall": 0.6413176800420536,
+        "f1": 0.6532214884883099,
+        "tp": 3660,
+        "tn": 2686,
+        "fp": 1839,
+        "fn": 2047,
+        "fp_fn_diff": 208
+      },
+      "0.58": {
+        "accuracy": 0.6076035965598123,
+        "precision": 0.681311615945135,
+        "recall": 0.5570352199053794,
+        "f1": 0.6129374337221634,
+        "tp": 3179,
+        "tn": 3038,
+        "fp": 1487,
+        "fn": 2528,
+        "fp_fn_diff": 1041
+      },
+      "0.6": {
+        "accuracy": 0.5988076622361219,
+        "precision": 0.6960352422907489,
+        "recall": 0.49833537760644825,
+        "f1": 0.5808230368630655,
+        "tp": 2844,
+        "tn": 3283,
+        "fp": 1242,
+        "fn": 2863,
+        "fp_fn_diff": 1621
+      }
     }
-  },
-  "paperReference": {
-    "accuracy": 0.57562,
-    "source": "Paper Baseline Replication",
-    "delta": -0.0015676357952325581,
-    "percentageGain": "-0.27%",
-    "improved": false
   }
 }
