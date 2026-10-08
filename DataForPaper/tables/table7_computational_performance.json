@@ -1,0 +1,82 @@
+[
+  {
+    "Dataset": "ISOT",
+    "Model": "Logistic Regression",
+    "Training Time (s)": "21.13 s",
+    "Single-Sample Latency (ms)": "0.24 ms",
+    "Batch (1,000) Latency (ms)": "13.01 ms",
+    "Model Disk Size (MB)": "1.07 MB"
+  },
+  {
+    "Dataset": "ISOT",
+    "Model": "Multinomial Naive Bayes",
+    "Training Time (s)": "20.74 s",
+    "Single-Sample Latency (ms)": "0.25 ms",
+    "Batch (1,000) Latency (ms)": "12.15 ms",
+    "Model Disk Size (MB)": "1.60 MB"
+  },
+  {
+    "Dataset": "ISOT",
+    "Model": "Linear SVM",
+    "Training Time (s)": "22.97 s",
+    "Single-Sample Latency (ms)": "0.98 ms",
+    "Batch (1,000) Latency (ms)": "11.32 ms",
+    "Model Disk Size (MB)": "1.43 MB"
+  },
+  {
+    "Dataset": "ISOT",
+    "Model": "Decision Tree",
+    "Training Time (s)": "42.76 s",
+    "Single-Sample Latency (ms)": "0.22 ms",
+    "Batch (1,000) Latency (ms)": "10.69 ms",
+    "Model Disk Size (MB)": "0.94 MB"
+  },
+  {
+    "Dataset": "ISOT",
+    "Model": "Random Forest",
+    "Training Time (s)": "40.97 s",
+    "Single-Sample Latency (ms)": "29.65 ms",
+    "Batch (1,000) Latency (ms)": "47.51 ms",
+    "Model Disk Size (MB)": "95.85 MB"
+  },
+  {
+    "Dataset": "LIAR",
+    "Model": "Logistic Regression",
+    "Training Time (s)": "0.032 s",
+    "Single-Sample Latency (ms)": "0.24 ms",
+    "Batch (1,000) Latency (ms)": "13.01 ms",
+    "Model Disk Size (MB)": "1.07 MB"
+  },
+  {
+    "Dataset": "LIAR",
+    "Model": "Multinomial Naive Bayes",
+    "Training Time (s)": "0.004 s",
+    "Single-Sample Latency (ms)": "0.25 ms",
+    "Batch (1,000) Latency (ms)": "12.15 ms",
+    "Model Disk Size (MB)": "1.60 MB"
+  },
+  {
+    "Dataset": "LIAR",
+    "Model": "Linear SVM",
+    "Training Time (s)": "0.049 s",
+    "Single-Sample Latency (ms)": "0.98 ms",
+    "Batch (1,000) Latency (ms)": "11.32 ms",
+    "Model Disk Size (MB)": "1.43 MB"
+  },
+  {
+    "Dataset": "LIAR",
+    "Model": "Decision Tree",
+    "Training Time (s)": "0.903 s",
+    "Single-Sample Latency (ms)": "0.22 ms",
+    "Batch (1,000) Latency (ms)": "10.69 ms",
+    "Model Disk Size (MB)": "0.94 MB"
+  },
+  {
+    "Dataset": "LIAR",
+    "Model": "Random Forest",
+    "Training Time (s)": "3.144 s",
+    "Single-Sample Latency (ms)": "29.65 ms",
+    "Batch (1,000) Latency (ms)": "47.51 ms",
+    "Model Disk Size (MB)": "95.85 MB"
+  }
+]

@@ -1,0 +1,243 @@
+{
+  "isot": {
+    "dataset_name": "ISOT Fake News Dataset",
+    "reference_paper_total_samples": 44898,
+    "reference_paper_fake_samples": 23481,
+    "reference_paper_real_samples": 21417,
+    "our_experiment_total_samples": 39100,
+    "deduplication_and_filtering": "Combined title and body, removed exact duplicate articles and empty texts",
+    "classes": [
+      "FAKE",
+      "REAL"
+    ],
+    "fake_count": 17903,
+    "real_count": 21197,
+    "fake_percentage": 45.78772378516624,
+    "real_percentage": 54.21227621483376,
+    "train_samples": 31280,
+    "test_samples": 7820,
+    "split_ratio": "80% Train / 20% Test (Stratified)",
+    "random_seed": 42,
+    "train_fake": 14322,
+    "train_real": 16958,
+    "test_fake": 3581,
+    "test_real": 4239,
+    "domain_origin": "Long-form full news articles from Reuters (Real) and fabricated political news sites (Fake)",
+    "text_length_statistics": {
+      "raw_word_count": {
+        "overall": {
+          "mean": 410.5288491048593,
+          "median": 378.0,
+          "std": 315.15376429562485,
+          "min": 4,
+          "max": 8148
+        },
+        "fake": {
+          "mean": 429.134335027649,
+          "median": 385.0,
+          "std": 357.1322429312961,
+          "min": 4,
+          "max": 8148
+        },
+        "real": {
+          "mean": 394.8146435816389,
+          "median": 368.0,
+          "std": 273.7727553065719,
+          "min": 4,
+          "max": 5181
+        }
+      },
+      "cleaned_word_count": {
+        "overall": {
+          "mean": 239.90777493606137,
+          "median": 218.0,
+          "std": 183.19813173975987,
+          "min": 3,
+          "max": 5008
+        },
+        "fake": {
+          "mean": 243.08305870524492,
+          "median": 217.0,
+          "std": 206.29337946721543,
+          "min": 3,
+          "max": 5008
+        },
+        "real": {
+          "mean": 237.22592819738642,
+          "median": 221.0,
+          "std": 161.0899530324792,
+          "min": 4,
+          "max": 2418
+        }
+      },
+      "raw_char_count": {
+        "overall": {
+          "mean": 2506.1742455242966,
+          "median": 2288.0,
+          "std": 1943.901217729904,
+          "min": 31,
+          "max": 51893
+        },
+        "fake": {
+          "mean": 2579.3661956096744,
+          "median": 2292.0,
+          "std": 2210.686788821924,
+          "min": 31,
+          "max": 51893
+        },
+        "real": {
+          "mean": 2444.356276831627,
+          "median": 2282.0,
+          "std": 1683.582475931798,
+          "min": 32,
+          "max": 29849
+        }
+      },
+      "cleaned_char_count": {
+        "overall": {
+          "mean": 1674.7180051150895,
+          "median": 1510.0,
+          "std": 1300.2420695159906,
+          "min": 21,
+          "max": 37104
+        },
+        "fake": {
+          "mean": 1667.3618387979668,
+          "median": 1473.0,
+          "std": 1469.3689884889154,
+          "min": 21,
+          "max": 37104
+        },
+        "real": {
+          "mean": 1680.931027975657,
+          "median": 1566.0,
+          "std": 1137.982446546931,
+          "min": 29,
+          "max": 17169
+        }
+      }
+    }
+  },
+  "liar": {
+    "dataset_name": "LIAR Benchmark Dataset (Wang, 2017)",
+    "reference_paper_total_samples": 12791,
+    "reference_paper_splits": {
+      "train": 10240,
+      "valid": 1284,
+      "test": 1267
+    },
+    "our_experiment_total_samples": 12791,
+    "classes": [
+      "FAKE",
+      "REAL"
+    ],
+    "class_mapping": "Binary Mapping: FAKE = {pants-fire, false, barely-true} (Class 0); REAL = {half-true, mostly-true, true} (Class 1)",
+    "fake_count": 5657,
+    "real_count": 7134,
+    "fake_percentage": 44.22640919396451,
+    "real_percentage": 55.773590806035486,
+    "train_samples": 10232,
+    "test_samples": 2559,
+    "split_ratio": "80% Train / 20% Test (Stratified on merged TSVs)",
+    "random_seed": 42,
+    "train_fake": 4525,
+    "train_real": 5707,
+    "test_fake": 1132,
+    "test_real": 1427,
+    "domain_origin": "Short political claim statements fact-checked by PolitiFact (single-sentence claims)",
+    "text_length_statistics": {
+      "raw_word_count": {
+        "overall": {
+          "mean": 18.040575404581347,
+          "median": 17.0,
+          "std": 10.129157864472003,
+          "min": 2,
+          "max": 467
+        },
+        "fake": {
+          "mean": 17.41647516351423,
+          "median": 16.0,
+          "std": 8.60755219730571,
+          "min": 2,
+          "max": 309
+        },
+        "real": {
+          "mean": 18.53546397532941,
+          "median": 17.0,
+          "std": 11.165430314011536,
+          "min": 2,
+          "max": 467
+        }
+      },
+      "cleaned_word_count": {
+        "overall": {
+          "mean": 17.175044953482917,
+          "median": 16.0,
+          "std": 9.629716331148368,
+          "min": 2,
+          "max": 437
+        },
+        "fake": {
+          "mean": 16.65441046491073,
+          "median": 15.0,
+          "std": 8.213399508207186,
+          "min": 2,
+          "max": 290
+        },
+        "real": {
+          "mean": 17.5878889823381,
+          "median": 16.0,
+          "std": 10.601775504775057,
+          "min": 2,
+          "max": 437
+        }
+      },
+      "raw_char_count": {
+        "overall": {
+          "mean": 107.16503791728559,
+          "median": 99.0,
+          "std": 63.57730982101965,
+          "min": 11,
+          "max": 3204
+        },
+        "fake": {
+          "mean": 104.04596075658476,
+          "median": 95.0,
+          "std": 52.32437799166045,
+          "min": 11,
+          "max": 2107
+        },
+        "real": {
+          "mean": 109.63835155592935,
+          "median": 101.0,
+          "std": 71.15461308693698,
+          "min": 11,
+          "max": 3204
+        }
+      },
+      "cleaned_char_count": {
+        "overall": {
+          "mean": 96.62606520209522,
+          "median": 89.0,
+          "std": 56.74145612880423,
+          "min": 8,
+          "max": 2794
+        },
+        "fake": {
+          "mean": 94.14194802899063,
+          "median": 87.0,
+          "std": 47.30629568022924,
+          "min": 8,
+          "max": 1822
+        },
+        "real": {
+          "mean": 98.59587888982338,
+          "median": 91.0,
+          "std": 63.164062987229734,
+          "min": 10,
+          "max": 2794
+        }
+      }
+    }
+  }
+}

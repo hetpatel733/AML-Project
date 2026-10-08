@@ -1,0 +1,970 @@
+{
+  "isot": {
+    "logistic_regression": {
+      "id": "logistic_regression",
+      "name": "Logistic Regression",
+      "dataset": "ISOT",
+      "parameters": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": 0.0,
+        "max_iter": 1000,
+        "n_jobs": null,
+        "penalty": "deprecated",
+        "random_state": 42,
+        "solver": "lbfgs",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "training_time_seconds": 21.1255228,
+      "test_metrics": {
+        "accuracy": 0.991304347826087,
+        "precision": 0.9876081365443068,
+        "recall": 0.9964614295824487,
+        "f1": 0.9920150305307656,
+        "roc_auc": 0.9996021043410218,
+        "tp": 4224,
+        "tn": 3528,
+        "fp": 53,
+        "fn": 15,
+        "confusion_matrix": [
+          [
+            3528,
+            53
+          ],
+          [
+            15,
+            4224
+          ]
+        ]
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.9901214833759591,
+          "f1": 0.9909273764585711,
+          "precision": 0.9867852346357655,
+          "recall": 0.9951055061121836
+        },
+        "std": {
+          "accuracy": 0.0005291862326485675,
+          "f1": 0.0004886112725013698,
+          "precision": 0.0007093473448561659,
+          "recall": 0.0010147710356350694
+        },
+        "fold_accuracy_scores": [
+          0.9892902813299232,
+          0.990888746803069,
+          0.9899296675191815,
+          0.9904092071611253,
+          0.9900895140664961
+        ],
+        "fold_f1_scores": [
+          0.9901571911267812,
+          0.9916287266852695,
+          0.9907529722589168,
+          0.9912049252418645,
+          0.9908930669800236
+        ]
+      },
+      "paper_comparison": {
+        "paper_accuracy": 0.993,
+        "our_accuracy": 0.991304347826087,
+        "difference": -0.001695652173912987,
+        "percentage_points": -0.1695652173912987,
+        "improved": false
+      }
+    },
+    "multinomial_nb": {
+      "id": "multinomial_nb",
+      "name": "Multinomial Naive Bayes",
+      "dataset": "ISOT",
+      "parameters": {
+        "alpha": 1.0,
+        "class_prior": null,
+        "fit_prior": true,
+        "force_alpha": true
+      },
+      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "training_time_seconds": 20.737959899999623,
+      "test_metrics": {
+        "accuracy": 0.9578005115089514,
+        "precision": 0.95999058602024,
+        "recall": 0.9622552488794527,
+        "f1": 0.9611215834118756,
+        "roc_auc": 0.9908915491244022,
+        "tp": 4079,
+        "tn": 3411,
+        "fp": 170,
+        "fn": 160,
+        "confusion_matrix": [
+          [
+            3411,
+            170
+          ],
+          [
+            160,
+            4079
+          ]
+        ]
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.9562979539641944,
+          "f1": 0.9596068659160395,
+          "precision": 0.9616426008688211,
+          "recall": 0.9576012286963828
+        },
+        "std": {
+          "accuracy": 0.0027363189164361437,
+          "f1": 0.0025804788559048945,
+          "precision": 0.0033144789964271353,
+          "recall": 0.004787174590926688
+        },
+        "fold_accuracy_scores": [
+          0.9541240409207161,
+          0.959079283887468,
+          0.9522058823529411,
+          0.9570012787723785,
+          0.959079283887468
+        ],
+        "fold_f1_scores": [
+          0.9576383763837638,
+          0.9621749408983451,
+          0.9556313993174061,
+          0.9604818569120024,
+          0.9621077560686797
+        ]
+      },
+      "paper_comparison": {
+        "paper_accuracy": 0.949,
+        "our_accuracy": 0.9578005115089514,
+        "difference": 0.008800511508951447,
+        "percentage_points": 0.8800511508951447,
+        "improved": true
+      }
+    },
+    "linear_svm": {
+      "id": "linear_svm",
+      "name": "Linear SVM",
+      "dataset": "ISOT",
+      "parameters": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": "auto",
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "loss": "squared_hinge",
+        "max_iter": 1000,
+        "multi_class": "ovr",
+        "penalty": "l2",
+        "random_state": 42,
+        "tol": 0.0001,
+        "verbose": 0
+      },
+      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "training_time_seconds": 22.97089320000032,
+      "test_metrics": {
+        "accuracy": 0.9975703324808184,
+        "precision": 0.9964705882352941,
+        "recall": 0.9990563812219864,
+        "f1": 0.9977618094004005,
+        "roc_auc": 0.9999092876949648,
+        "tp": 4235,
+        "tn": 3566,
+        "fp": 15,
+        "fn": 4,
+        "confusion_matrix": [
+          [
+            3566,
+            15
+          ],
+          [
+            4,
+            4235
+          ]
+        ]
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.9962276214833761,
+          "f1": 0.9965252608104972,
+          "precision": 0.9951782076181812,
+          "recall": 0.9978769759574456
+        },
+        "std": {
+          "accuracy": 0.0007119903277276345,
+          "f1": 0.0006571587033844273,
+          "precision": 0.0007536563794339203,
+          "recall": 0.001140732682346163
+        },
+        "fold_accuracy_scores": [
+          0.9955242966751918,
+          0.9953644501278772,
+          0.9966432225063938,
+          0.9972826086956522,
+          0.9963235294117647
+        ],
+        "fold_f1_scores": [
+          0.9958714243585963,
+          0.9957321559970567,
+          0.9969104016477858,
+          0.9974981604120677,
+          0.9966141616369792
+        ]
+      },
+      "paper_comparison": {
+        "paper_accuracy": 0.996,
+        "our_accuracy": 0.9975703324808184,
+        "difference": 0.0015703324808183927,
+        "percentage_points": 0.15703324808183927,
+        "improved": true
+      }
+    },
+    "decision_tree": {
+      "id": "decision_tree",
+      "name": "Decision Tree",
+      "dataset": "ISOT",
+      "parameters": {
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": null,
+        "max_leaf_nodes": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "random_state": 42,
+        "splitter": "best"
+      },
+      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "training_time_seconds": 42.75743880000027,
+      "test_metrics": {
+        "accuracy": 0.9956521739130435,
+        "precision": 0.9959896201934418,
+        "recall": 0.9959896201934418,
+        "f1": 0.9959896201934418,
+        "roc_auc": 0.9956211714482986,
+        "tp": 4222,
+        "tn": 3564,
+        "fp": 17,
+        "fn": 17,
+        "confusion_matrix": [
+          [
+            3564,
+            17
+          ],
+          [
+            17,
+            4222
+          ]
+        ]
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.9948209718670078,
+          "f1": 0.995221941786442,
+          "precision": 0.9955753712770598,
+          "recall": 0.9948696918313182
+        },
+        "std": {
+          "accuracy": 0.0003992965472121704,
+          "f1": 0.00036656065750579237,
+          "precision": 0.0009646534959097758,
+          "recall": 0.0005139059193504768
+        },
+        "fold_accuracy_scores": [
+          0.9950447570332481,
+          0.9940856777493606,
+          0.9947250639386189,
+          0.9952046035805626,
+          0.9950447570332481
+        ],
+        "fold_f1_scores": [
+          0.9954284028904291,
+          0.9945451864956509,
+          0.9951377633711507,
+          0.995571302037201,
+          0.9954270541377784
+        ]
+      },
+      "paper_comparison": {
+        "paper_accuracy": 0.996,
+        "our_accuracy": 0.9956521739130435,
+        "difference": -0.0003478260869564931,
+        "percentage_points": -0.03478260869564931,
+        "improved": false
+      }
+    },
+    "random_forest": {
+      "id": "random_forest",
+      "name": "Random Forest",
+      "dataset": "ISOT",
+      "parameters": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": "sqrt",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 1,
+        "min_samples_split": 2,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "n_estimators": 100,
+        "n_jobs": -1,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+      "training_time_seconds": 40.96596969999973,
+      "test_metrics": {
+        "accuracy": 0.9976982097186701,
+        "precision": 0.9971731448763251,
+        "recall": 0.9985845718329794,
+        "f1": 0.9978783592644979,
+        "roc_auc": 0.9999056315345222,
+        "tp": 4233,
+        "tn": 3569,
+        "fp": 12,
+        "fn": 6,
+        "confusion_matrix": [
+          [
+            3569,
+            12
+          ],
+          [
+            6,
+            4233
+          ]
+        ]
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.9967710997442456,
+          "f1": 0.9970250234158329,
+          "precision": 0.9960570390832808,
+          "recall": 0.9979950395887004
+        },
+        "std": {
+          "accuracy": 0.00037007151223755725,
+          "f1": 0.0003402350035522973,
+          "precision": 0.0005742044670629039,
+          "recall": 0.00022072830170672357
+        },
+        "fold_accuracy_scores": [
+          0.9966432225063938,
+          0.996962915601023,
+          0.9961636828644501,
+          0.9972826086956522,
+          0.9968030690537084
+        ],
+        "fold_f1_scores": [
+          0.996905849418005,
+          0.9972013551333039,
+          0.9964674712982043,
+          0.9974959493297982,
+          0.9970544918998527
+        ]
+      },
+      "paper_comparison": {
+        "paper_accuracy": 0.998,
+        "our_accuracy": 0.9976982097186701,
+        "difference": -0.0003017902813299278,
+        "percentage_points": -0.03017902813299278,
+        "improved": false
+      }
+    }
+  },
+  "liar": {
+    "logistic_regression": {
+      "id": "logistic_regression",
+      "name": "Logistic Regression",
+      "dataset": "LIAR",
+      "parameters": {
+        "C": 1.0,
+        "class_weight": null,
+        "dual": false,
+        "fit_intercept": true,
+        "intercept_scaling": 1,
+        "l1_ratio": 0.0,
+        "max_iter": 1000,
+        "n_jobs": null,
+        "penalty": "deprecated",
+        "random_state": 42,
+        "solver": "liblinear",
+        "tol": 0.0001,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
+      "training_time_seconds": 0.03194609999991371,
+      "test_metrics_default_threshold_0.50": {
+        "threshold": 0.5,
+        "accuracy": 0.6213364595545134,
+        "precision": 0.6292325056433409,
+        "recall": 0.7813594954449895,
+        "f1": 0.6970928415129728,
+        "roc_auc": 0.6643035253973717,
+        "tp": 1115,
+        "tn": 475,
+        "fp": 657,
+        "fn": 312,
+        "confusion_matrix": [
+          [
+            475,
+            657
+          ],
+          [
+            312,
+            1115
+          ]
+        ],
+        "fp_fn_disparity": 345
+      },
+      "test_metrics_calibrated_threshold_0.55": {
+        "threshold": 0.55,
+        "accuracy": 0.620945681906995,
+        "precision": 0.656614119259767,
+        "recall": 0.6713384723195515,
+        "f1": 0.6638946638946639,
+        "roc_auc": 0.6643035253973717,
+        "tp": 958,
+        "tn": 631,
+        "fp": 501,
+        "fn": 469,
+        "confusion_matrix": [
+          [
+            631,
+            501
+          ],
+          [
+            469,
+            958
+          ]
+        ],
+        "fp_fn_disparity": 32
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.6212856140712799,
+          "f1": 0.6917080875619002,
+          "precision": 0.633523338551952,
+          "recall": 0.7616948908000019,
+          "roc_auc": 0.6611699979268761
+        },
+        "std": {
+          "accuracy": 0.01637728884035116,
+          "f1": 0.013078672438480762,
+          "precision": 0.012521078070966038,
+          "recall": 0.01447100649241941
+        },
+        "fold_accuracy_scores": [
+          0.6321446018563752,
+          0.6160234489496824,
+          0.6119257086999023,
+          0.6466275659824047,
+          0.5997067448680352
+        ],
+        "fold_f1_scores": [
+          0.7022538552787663,
+          0.6863527533918595,
+          0.6824,
+          0.7113772455089821,
+          0.6761565836298933
+        ]
+      },
+      "paper_comparison_default_threshold": {
+        "paper_accuracy": 0.628,
+        "our_accuracy": 0.6213364595545134,
+        "difference": -0.00666354044548656,
+        "percentage_points": -0.666354044548656,
+        "improved": false
+      },
+      "paper_comparison_calibrated_threshold": {
+        "paper_accuracy": 0.628,
+        "our_accuracy": 0.620945681906995,
+        "difference": -0.007054318093005052,
+        "percentage_points": -0.7054318093005052,
+        "improved": false
+      }
+    },
+    "multinomial_nb": {
+      "id": "multinomial_nb",
+      "name": "Multinomial Naive Bayes",
+      "dataset": "LIAR",
+      "parameters": {
+        "alpha": 1.0,
+        "class_prior": null,
+        "fit_prior": true,
+        "force_alpha": true
+      },
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
+      "training_time_seconds": 0.003954699999667355,
+      "test_metrics_default_threshold_0.50": {
+        "threshold": 0.5,
+        "accuracy": 0.6088315748339195,
+        "precision": 0.605759682224429,
+        "recall": 0.8549404344779257,
+        "f1": 0.7090961929671608,
+        "roc_auc": 0.6612881059624951,
+        "tp": 1220,
+        "tn": 338,
+        "fp": 794,
+        "fn": 207,
+        "confusion_matrix": [
+          [
+            338,
+            794
+          ],
+          [
+            207,
+            1220
+          ]
+        ],
+        "fp_fn_disparity": 587
+      },
+      "test_metrics_calibrated_threshold_0.55": {
+        "threshold": 0.55,
+        "accuracy": 0.6193825713169206,
+        "precision": 0.6286201022146508,
+        "recall": 0.7757533286615277,
+        "f1": 0.6944792973651192,
+        "roc_auc": 0.6612881059624951,
+        "tp": 1107,
+        "tn": 478,
+        "fp": 654,
+        "fn": 320,
+        "confusion_matrix": [
+          [
+            478,
+            654
+          ],
+          [
+            320,
+            1107
+          ]
+        ],
+        "fp_fn_disparity": 334
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.622849927963627,
+          "f1": 0.7164502948418626,
+          "precision": 0.616968945336809,
+          "recall": 0.8542145873208588,
+          "roc_auc": 0.6606998427480407
+        },
+        "std": {
+          "accuracy": 0.011689148316464863,
+          "f1": 0.00823694670991858,
+          "precision": 0.00801250627099827,
+          "recall": 0.009406235457123756
+        },
+        "fold_accuracy_scores": [
+          0.6248168050806058,
+          0.6204201270151442,
+          0.6265884652981427,
+          0.6392961876832844,
+          0.603128054740958
+        ],
+        "fold_f1_scores": [
+          0.7192982456140351,
+          0.7127541589648798,
+          0.7182890855457227,
+          0.7284768211920529,
+          0.7034331628926224
+        ]
+      },
+      "paper_comparison_default_threshold": {
+        "paper_accuracy": 0.623,
+        "our_accuracy": 0.6088315748339195,
+        "difference": -0.014168425166080523,
+        "percentage_points": -1.4168425166080523,
+        "improved": false
+      },
+      "paper_comparison_calibrated_threshold": {
+        "paper_accuracy": 0.623,
+        "our_accuracy": 0.6193825713169206,
+        "difference": -0.003617428683079349,
+        "percentage_points": -0.3617428683079349,
+        "improved": false
+      }
+    },
+    "linear_svm": {
+      "id": "linear_svm",
+      "name": "Linear SVM",
+      "dataset": "LIAR",
+      "parameters": {
+        "cv": 3,
+        "ensemble": "auto",
+        "estimator__C": 0.1,
+        "estimator__class_weight": null,
+        "estimator__dual": "auto",
+        "estimator__fit_intercept": true,
+        "estimator__intercept_scaling": 1,
+        "estimator__loss": "squared_hinge",
+        "estimator__max_iter": 2000,
+        "estimator__multi_class": "ovr",
+        "estimator__penalty": "l2",
+        "estimator__random_state": 42,
+        "estimator__tol": 0.0001,
+        "estimator__verbose": 0,
+        "estimator": "LinearSVC(C=0.1, max_iter=2000, random_state=42)",
+        "method": "sigmoid",
+        "n_jobs": null
+      },
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
+      "training_time_seconds": 0.0485419999986334,
+      "test_metrics_default_threshold_0.50": {
+        "threshold": 0.5,
+        "accuracy": 0.6240719030871434,
+        "precision": 0.63083849184018,
+        "recall": 0.7855641205325858,
+        "f1": 0.6997503121098627,
+        "roc_auc": 0.6703684123206906,
+        "tp": 1121,
+        "tn": 476,
+        "fp": 656,
+        "fn": 306,
+        "confusion_matrix": [
+          [
+            476,
+            656
+          ],
+          [
+            306,
+            1121
+          ]
+        ],
+        "fp_fn_disparity": 350
+      },
+      "test_metrics_calibrated_threshold_0.55": {
+        "threshold": 0.55,
+        "accuracy": 0.6260257913247362,
+        "precision": 0.6629680998613038,
+        "recall": 0.6699369306236861,
+        "f1": 0.6664342976646915,
+        "roc_auc": 0.6703684123206906,
+        "tp": 956,
+        "tn": 646,
+        "fp": 486,
+        "fn": 471,
+        "confusion_matrix": [
+          [
+            646,
+            486
+          ],
+          [
+            471,
+            956
+          ]
+        ],
+        "fp_fn_disparity": 15
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.6207967600107158,
+          "f1": 0.6912054327268307,
+          "precision": 0.6330695716148002,
+          "recall": 0.761168729307717,
+          "roc_auc": 0.6625926556058284
+        },
+        "std": {
+          "accuracy": 0.016393832767825293,
+          "f1": 0.014750176108019682,
+          "precision": 0.011214049396501183,
+          "recall": 0.020403247394838637
+        },
+        "fold_accuracy_scores": [
+          0.6292134831460674,
+          0.6199316072300928,
+          0.6089931573802542,
+          0.6466275659824047,
+          0.5992179863147605
+        ],
+        "fold_f1_scores": [
+          0.7008277493102089,
+          0.6888,
+          0.6784565916398714,
+          0.7141162514827996,
+          0.6738265712012729
+        ]
+      },
+      "paper_comparison_default_threshold": {
+        "paper_accuracy": 0.626,
+        "our_accuracy": 0.6240719030871434,
+        "difference": -0.0019280969128565584,
+        "percentage_points": -0.19280969128565584,
+        "improved": false
+      },
+      "paper_comparison_calibrated_threshold": {
+        "paper_accuracy": 0.626,
+        "our_accuracy": 0.6260257913247362,
+        "difference": 2.5791324736235133e-05,
+        "percentage_points": 0.0025791324736235133,
+        "improved": true
+      }
+    },
+    "decision_tree": {
+      "id": "decision_tree",
+      "name": "Decision Tree",
+      "dataset": "LIAR",
+      "parameters": {
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": 20,
+        "max_features": null,
+        "max_leaf_nodes": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 1,
+        "min_samples_split": 5,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "random_state": 42,
+        "splitter": "best"
+      },
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
+      "training_time_seconds": 0.9026145999996515,
+      "test_metrics_default_threshold_0.50": {
+        "threshold": 0.5,
+        "accuracy": 0.5705353653771005,
+        "precision": 0.6074705111402359,
+        "recall": 0.649614576033637,
+        "f1": 0.6278360988824924,
+        "roc_auc": 0.5695867928219275,
+        "tp": 927,
+        "tn": 533,
+        "fp": 599,
+        "fn": 500,
+        "confusion_matrix": [
+          [
+            533,
+            599
+          ],
+          [
+            500,
+            927
+          ]
+        ],
+        "fp_fn_disparity": 99
+      },
+      "test_metrics_calibrated_threshold_0.55": {
+        "threshold": 0.5,
+        "accuracy": 0.5705353653771005,
+        "precision": 0.6074705111402359,
+        "recall": 0.649614576033637,
+        "f1": 0.6278360988824924,
+        "roc_auc": 0.5695867928219275,
+        "tp": 927,
+        "tn": 533,
+        "fp": 599,
+        "fn": 500,
+        "confusion_matrix": [
+          [
+            533,
+            599
+          ],
+          [
+            500,
+            927
+          ]
+        ],
+        "fp_fn_disparity": 99
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.5608847508763988,
+          "f1": 0.6112241222349152,
+          "precision": 0.6034457407202547,
+          "recall": 0.6206311175099115,
+          "roc_auc": 0.5644446763367953
+        },
+        "std": {
+          "accuracy": 0.012809472527431209,
+          "f1": 0.022118153385549316,
+          "precision": 0.00912805229748613,
+          "recall": 0.04151581713416185
+        },
+        "fold_accuracy_scores": [
+          0.572056668295066,
+          0.5769418661455789,
+          0.5434995112414467,
+          0.5625610948191594,
+          0.5493646138807429
+        ],
+        "fold_f1_scores": [
+          0.6233877901977644,
+          0.636744966442953,
+          0.5981067125645438,
+          0.6231578947368421,
+          0.5747232472324724
+        ]
+      },
+      "paper_comparison_default_threshold": {
+        "paper_accuracy": 0.571,
+        "our_accuracy": 0.5705353653771005,
+        "difference": -0.00046463462289947355,
+        "percentage_points": -0.046463462289947355,
+        "improved": false
+      },
+      "paper_comparison_calibrated_threshold": {
+        "paper_accuracy": 0.571,
+        "our_accuracy": 0.5705353653771005,
+        "difference": -0.00046463462289947355,
+        "percentage_points": -0.046463462289947355,
+        "improved": false
+      }
+    },
+    "random_forest": {
+      "id": "random_forest",
+      "name": "Random Forest",
+      "dataset": "LIAR",
+      "parameters": {
+        "bootstrap": true,
+        "ccp_alpha": 0.0,
+        "class_weight": null,
+        "criterion": "gini",
+        "max_depth": null,
+        "max_features": "sqrt",
+        "max_leaf_nodes": null,
+        "max_samples": null,
+        "min_impurity_decrease": 0.0,
+        "min_samples_leaf": 1,
+        "min_samples_split": 5,
+        "min_weight_fraction_leaf": 0.0,
+        "monotonic_cst": null,
+        "n_estimators": 200,
+        "n_jobs": -1,
+        "oob_score": false,
+        "random_state": 42,
+        "verbose": 0,
+        "warm_start": false
+      },
+      "representation": "Word TF-IDF (1,2) with Sublinear TF (25,000 features, Negation-Preserving)",
+      "training_time_seconds": 3.1437256000008347,
+      "test_metrics_default_threshold_0.50": {
+        "threshold": 0.5,
+        "accuracy": 0.6252442360296991,
+        "precision": 0.6267605633802817,
+        "recall": 0.810791871058164,
+        "f1": 0.7069966391689582,
+        "roc_auc": 0.6713842824279853,
+        "tp": 1157,
+        "tn": 443,
+        "fp": 689,
+        "fn": 270,
+        "confusion_matrix": [
+          [
+            443,
+            689
+          ],
+          [
+            270,
+            1157
+          ]
+        ],
+        "fp_fn_disparity": 419
+      },
+      "test_metrics_calibrated_threshold_0.55": {
+        "threshold": 0.55,
+        "accuracy": 0.627979679562329,
+        "precision": 0.6511775938892426,
+        "recall": 0.7168885774351786,
+        "f1": 0.6824549699799867,
+        "roc_auc": 0.6713842824279853,
+        "tp": 1023,
+        "tn": 584,
+        "fp": 548,
+        "fn": 404,
+        "confusion_matrix": [
+          [
+            584,
+            548
+          ],
+          [
+            404,
+            1023
+          ]
+        ],
+        "fp_fn_disparity": 144
+      },
+      "cross_validation": {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+          "accuracy": 0.6218728883935244,
+          "f1": 0.698016996713545,
+          "precision": 0.6292634320878661,
+          "recall": 0.7839473163154574,
+          "roc_auc": 0.65473207886968
+        },
+        "std": {
+          "accuracy": 0.012745599376973582,
+          "f1": 0.012510189357943683,
+          "precision": 0.008573668671368767,
+          "recall": 0.022977772510314295
+        },
+        "fold_accuracy_scores": [
+          0.6321446018563752,
+          0.6082071323888617,
+          0.6094819159335289,
+          0.6407624633431085,
+          0.6187683284457478
+        ],
+        "fold_f1_scores": [
+          0.7080263668088407,
+          0.6898685228151585,
+          0.678987545198875,
+          0.7138964577656676,
+          0.6993060909791827
+        ]
+      },
+      "paper_comparison_default_threshold": {
+        "paper_accuracy": 0.625,
+        "our_accuracy": 0.6252442360296991,
+        "difference": 0.0002442360296991408,
+        "percentage_points": 0.024423602969914082,
+        "improved": true
+      },
+      "paper_comparison_calibrated_threshold": {
+        "paper_accuracy": 0.625,
+        "our_accuracy": 0.627979679562329,
+        "difference": 0.0029796795623290295,
+        "percentage_points": 0.29796795623290295,
+        "improved": true
+      }
+    }
+  }
+}

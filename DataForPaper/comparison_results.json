@@ -1,0 +1,152 @@
+[
+  {
+    "dataset": "ISOT",
+    "model_id": "logistic_regression",
+    "model_name": "Logistic Regression",
+    "paper_accuracy": 0.993,
+    "our_accuracy": 0.991304347826087,
+    "difference": -0.001695652173912987,
+    "percentage_points": -0.1695652173912987,
+    "improved": false
+  },
+  {
+    "dataset": "ISOT",
+    "model_id": "multinomial_nb",
+    "model_name": "Multinomial Naive Bayes",
+    "paper_accuracy": 0.949,
+    "our_accuracy": 0.9578005115089514,
+    "difference": 0.008800511508951447,
+    "percentage_points": 0.8800511508951447,
+    "improved": true
+  },
+  {
+    "dataset": "ISOT",
+    "model_id": "linear_svm",
+    "model_name": "Linear SVM",
+    "paper_accuracy": 0.996,
+    "our_accuracy": 0.9975703324808184,
+    "difference": 0.0015703324808183927,
+    "percentage_points": 0.15703324808183927,
+    "improved": true
+  },
+  {
+    "dataset": "ISOT",
+    "model_id": "decision_tree",
+    "model_name": "Decision Tree",
+    "paper_accuracy": 0.996,
+    "our_accuracy": 0.9956521739130435,
+    "difference": -0.0003478260869564931,
+    "percentage_points": -0.03478260869564931,
+    "improved": false
+  },
+  {
+    "dataset": "ISOT",
+    "model_id": "random_forest",
+    "model_name": "Random Forest",
+    "paper_accuracy": 0.998,
+    "our_accuracy": 0.9976982097186701,
+    "difference": -0.0003017902813299278,
+    "percentage_points": -0.03017902813299278,
+    "improved": false
+  },
+  {
+    "dataset": "LIAR (Default tau=0.50)",
+    "model_id": "logistic_regression",
+    "model_name": "Logistic Regression",
+    "paper_accuracy": 0.628,
+    "our_accuracy": 0.6213364595545134,
+    "difference": -0.00666354044548656,
+    "percentage_points": -0.666354044548656,
+    "improved": false
+  },
+  {
+    "dataset": "LIAR (Calibrated tau=0.55)",
+    "model_id": "logistic_regression",
+    "model_name": "Logistic Regression",
+    "paper_accuracy": 0.628,
+    "our_accuracy": 0.620945681906995,
+    "difference": -0.007054318093005052,
+    "percentage_points": -0.7054318093005052,
+    "improved": false
+  },
+  {
+    "dataset": "LIAR (Default tau=0.50)",
+    "model_id": "multinomial_nb",
+    "model_name": "Multinomial Naive Bayes",
+    "paper_accuracy": 0.623,
+    "our_accuracy": 0.6088315748339195,
+    "difference": -0.014168425166080523,
+    "percentage_points": -1.4168425166080523,
+    "improved": false
+  },
+  {
+    "dataset": "LIAR (Calibrated tau=0.55)",
+    "model_id": "multinomial_nb",
+    "model_name": "Multinomial Naive Bayes",
+    "paper_accuracy": 0.623,
+    "our_accuracy": 0.6193825713169206,
+    "difference": -0.003617428683079349,
+    "percentage_points": -0.3617428683079349,
+    "improved": false
+  },
+  {
+    "dataset": "LIAR (Default tau=0.50)",
+    "model_id": "linear_svm",
+    "model_name": "Linear SVM",
+    "paper_accuracy": 0.626,
+    "our_accuracy": 0.6240719030871434,
+    "difference": -0.0019280969128565584,
+    "percentage_points": -0.19280969128565584,
+    "improved": false
+  },
+  {
+    "dataset": "LIAR (Calibrated tau=0.55)",
+    "model_id": "linear_svm",
+    "model_name": "Linear SVM",
+    "paper_accuracy": 0.626,
+    "our_accuracy": 0.6260257913247362,
+    "difference": 2.5791324736235133e-05,
+    "percentage_points": 0.0025791324736235133,
+    "improved": true
+  },
+  {
+    "dataset": "LIAR (Default tau=0.50)",
+    "model_id": "decision_tree",
+    "model_name": "Decision Tree",
+    "paper_accuracy": 0.571,
+    "our_accuracy": 0.5705353653771005,
+    "difference": -0.00046463462289947355,
+    "percentage_points": -0.046463462289947355,
+    "improved": false
+  },
+  {
+    "dataset": "LIAR (Calibrated tau=0.55)",
+    "model_id": "decision_tree",
+    "model_name": "Decision Tree",
+    "paper_accuracy": 0.571,
+    "our_accuracy": 0.5705353653771005,
+    "difference": -0.00046463462289947355,
+    "percentage_points": -0.046463462289947355,
+    "improved": false
+  },
+  {
+    "dataset": "LIAR (Default tau=0.50)",
+    "model_id": "random_forest",
+    "model_name": "Random Forest",
+    "paper_accuracy": 0.625,
+    "our_accuracy": 0.6252442360296991,
+    "difference": 0.0002442360296991408,
+    "percentage_points": 0.024423602969914082,
+    "improved": true
+  },
+  {
+    "dataset": "LIAR (Calibrated tau=0.55)",
+    "model_id": "random_forest",
+    "model_name": "Random Forest",
+    "paper_accuracy": 0.625,
+    "our_accuracy": 0.627979679562329,
+    "difference": 0.0029796795623290295,
+    "percentage_points": 0.29796795623290295,
+    "improved": true
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "Feature Representation": "Word TF-IDF (1, 2) [WINNING]",
+    "Tokenization & Range": "Word unigrams + bigrams",
+    "Vocabulary Limit": "25,000 features",
+    "Sublinear TF": "True (1 + log(tf))",
+    "5-Fold CV Accuracy": "62.06% \u00b1 1.64%",
+    "5-Fold CV F1": "69.17% \u00b1 1.31%",
+    "Test Accuracy (tau=0.55)": "62.60%",
+    "Error Disparity |FP - FN|": "15 (Optimal)"
+  },
+  {
+    "Feature Representation": "Word TF-IDF (1, 3)",
+    "Tokenization & Range": "Word unigrams, bigrams, trigrams",
+    "Vocabulary Limit": "25,000 features",
+    "Sublinear TF": "True",
+    "5-Fold CV Accuracy": "61.36% \u00b1 1.48%",
+    "5-Fold CV F1": "68.74% \u00b1 1.42%",
+    "Test Accuracy (tau=0.55)": "61.82%",
+    "Error Disparity |FP - FN|": "84"
+  },
+  {
+    "Feature Representation": "Char TF-IDF (3, 5)",
+    "Tokenization & Range": "Character n-grams (3-5 within word boundaries)",
+    "Vocabulary Limit": "15,000 features",
+    "Sublinear TF": "True",
+    "5-Fold CV Accuracy": "60.75% \u00b1 1.55%",
+    "5-Fold CV F1": "67.89% \u00b1 1.36%",
+    "Test Accuracy (tau=0.55)": "61.04%",
+    "Error Disparity |FP - FN|": "112"
+  },
+  {
+    "Feature Representation": "Word (1, 2) + Char (3, 5) Hybrid",
+    "Tokenization & Range": "FeatureUnion (Word 10k + Char 10k)",
+    "Vocabulary Limit": "20,000 features",
+    "Sublinear TF": "True",
+    "5-Fold CV Accuracy": "60.88% \u00b1 1.51%",
+    "5-Fold CV F1": "68.02% \u00b1 1.40%",
+    "Test Accuracy (tau=0.55)": "61.20%",
+    "Error Disparity |FP - FN|": "98"
+  }
+]

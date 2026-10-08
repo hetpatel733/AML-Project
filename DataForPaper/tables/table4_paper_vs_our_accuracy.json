@@ -1,0 +1,137 @@
+[
+  {
+    "Dataset Evaluation": "ISOT",
+    "Model": "Logistic Regression",
+    "Reference Paper Acc": "99.30%",
+    "Our Test Acc": "99.13%",
+    "Delta (Abs)": "-0.0017",
+    "Delta (pp)": "-0.17 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "ISOT",
+    "Model": "Multinomial Naive Bayes",
+    "Reference Paper Acc": "94.90%",
+    "Our Test Acc": "95.78%",
+    "Delta (Abs)": "+0.0088",
+    "Delta (pp)": "+0.88 pp",
+    "Outcome": "BEATS PAPER"
+  },
+  {
+    "Dataset Evaluation": "ISOT",
+    "Model": "Linear SVM",
+    "Reference Paper Acc": "99.60%",
+    "Our Test Acc": "99.76%",
+    "Delta (Abs)": "+0.0016",
+    "Delta (pp)": "+0.16 pp",
+    "Outcome": "BEATS PAPER"
+  },
+  {
+    "Dataset Evaluation": "ISOT",
+    "Model": "Decision Tree",
+    "Reference Paper Acc": "99.60%",
+    "Our Test Acc": "99.57%",
+    "Delta (Abs)": "-0.0003",
+    "Delta (pp)": "-0.03 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "ISOT",
+    "Model": "Random Forest",
+    "Reference Paper Acc": "99.80%",
+    "Our Test Acc": "99.77%",
+    "Delta (Abs)": "-0.0003",
+    "Delta (pp)": "-0.03 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Default tau=0.50)",
+    "Model": "Logistic Regression",
+    "Reference Paper Acc": "62.80%",
+    "Our Test Acc": "62.13%",
+    "Delta (Abs)": "-0.0067",
+    "Delta (pp)": "-0.67 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Calibrated tau=0.55)",
+    "Model": "Logistic Regression",
+    "Reference Paper Acc": "62.80%",
+    "Our Test Acc": "62.09%",
+    "Delta (Abs)": "-0.0071",
+    "Delta (pp)": "-0.71 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Default tau=0.50)",
+    "Model": "Multinomial Naive Bayes",
+    "Reference Paper Acc": "62.30%",
+    "Our Test Acc": "60.88%",
+    "Delta (Abs)": "-0.0142",
+    "Delta (pp)": "-1.42 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Calibrated tau=0.55)",
+    "Model": "Multinomial Naive Bayes",
+    "Reference Paper Acc": "62.30%",
+    "Our Test Acc": "61.94%",
+    "Delta (Abs)": "-0.0036",
+    "Delta (pp)": "-0.36 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Default tau=0.50)",
+    "Model": "Linear SVM",
+    "Reference Paper Acc": "62.60%",
+    "Our Test Acc": "62.41%",
+    "Delta (Abs)": "-0.0019",
+    "Delta (pp)": "-0.19 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Calibrated tau=0.55)",
+    "Model": "Linear SVM",
+    "Reference Paper Acc": "62.60%",
+    "Our Test Acc": "62.60%",
+    "Delta (Abs)": "+0.0000",
+    "Delta (pp)": "+0.00 pp",
+    "Outcome": "BEATS PAPER"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Default tau=0.50)",
+    "Model": "Decision Tree",
+    "Reference Paper Acc": "57.10%",
+    "Our Test Acc": "57.05%",
+    "Delta (Abs)": "-0.0005",
+    "Delta (pp)": "-0.05 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Calibrated tau=0.55)",
+    "Model": "Decision Tree",
+    "Reference Paper Acc": "57.10%",
+    "Our Test Acc": "57.05%",
+    "Delta (Abs)": "-0.0005",
+    "Delta (pp)": "-0.05 pp",
+    "Outcome": "COMPARABLE"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Default tau=0.50)",
+    "Model": "Random Forest",
+    "Reference Paper Acc": "62.50%",
+    "Our Test Acc": "62.52%",
+    "Delta (Abs)": "+0.0002",
+    "Delta (pp)": "+0.02 pp",
+    "Outcome": "BEATS PAPER"
+  },
+  {
+    "Dataset Evaluation": "LIAR (Calibrated tau=0.55)",
+    "Model": "Random Forest",
+    "Reference Paper Acc": "62.50%",
+    "Our Test Acc": "62.80%",
+    "Delta (Abs)": "+0.0030",
+    "Delta (pp)": "+0.30 pp",
+    "Outcome": "BEATS PAPER"
+  }
+]

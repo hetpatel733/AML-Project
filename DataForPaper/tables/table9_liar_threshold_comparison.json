@@ -1,0 +1,62 @@
+[
+  {
+    "Threshold (tau)": "0.40",
+    "Operating Regime": "High Recall / Permissive",
+    "Accuracy": "59.87%",
+    "Precision": "59.18%",
+    "Recall": "89.28%",
+    "F1-Score": "71.17%",
+    "False Positives (FP)": 879,
+    "False Negatives (FN)": 153,
+    "Error Disparity |FP - FN|": 726,
+    "Impact": "Severe False Positive Inflation (Classifies 77.6% of fake statements as real)"
+  },
+  {
+    "Threshold (tau)": "0.45",
+    "Operating Regime": "Moderate Bias",
+    "Accuracy": "61.47%",
+    "Precision": "61.08%",
+    "Recall": "84.58%",
+    "F1-Score": "70.93%",
+    "False Positives (FP)": 770,
+    "False Negatives (FN)": 220,
+    "Error Disparity |FP - FN|": 550,
+    "Impact": "High False Positive rate outweighs detection sensitivity"
+  },
+  {
+    "Threshold (tau)": "0.50",
+    "Operating Regime": "Standard Default Cutoff",
+    "Accuracy": "62.41%",
+    "Precision": "63.08%",
+    "Recall": "78.56%",
+    "F1-Score": "69.98%",
+    "False Positives (FP)": 656,
+    "False Negatives (FN)": 306,
+    "Error Disparity |FP - FN|": 350,
+    "Impact": "Moderate positive-class skew (FP exceeds FN by 114%)"
+  },
+  {
+    "Threshold (tau)": "0.55 [OPTIMAL]",
+    "Operating Regime": "Calibrated Decision Boundary",
+    "Accuracy": "62.60%",
+    "Precision": "66.30%",
+    "Recall": "66.99%",
+    "F1-Score": "66.64%",
+    "False Positives (FP)": 486,
+    "False Negatives (FN)": 471,
+    "Error Disparity |FP - FN|": 15,
+    "Impact": "Balanced Error Profile: 95.7% reduction in FP-FN disparity; matches/beats published paper baseline"
+  },
+  {
+    "Threshold (tau)": "0.60",
+    "Operating Regime": "High Precision / Conservative",
+    "Accuracy": "60.92%",
+    "Precision": "70.09%",
+    "Recall": "51.58%",
+    "F1-Score": "59.42%",
+    "False Positives (FP)": 314,
+    "False Negatives (FN)": 691,
+    "Error Disparity |FP - FN|": 377,
+    "Impact": "Severe False Negative Inflation (Discards nearly half of legitimate claims)"
+  }
+]

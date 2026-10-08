@@ -1,0 +1,40 @@
+{
+  "ISOT": {},
+  "LIAR": {
+    "logistic_regression": {
+      "single_sample_latency_ms": 0.2400129999659839,
+      "batch_1000_latency_ms": 13.010799999392475,
+      "model_size_mb": 0.17980480194091797,
+      "vectorizer_size_mb": 0.8872165679931641,
+      "total_size_mb": 1.067021369934082
+    },
+    "multinomial_nb": {
+      "single_sample_latency_ms": 0.25326099992525997,
+      "batch_1000_latency_ms": 12.151200000516837,
+      "model_size_mb": 0.7166051864624023,
+      "vectorizer_size_mb": 0.8872165679931641,
+      "total_size_mb": 1.6038217544555664
+    },
+    "linear_svm": {
+      "single_sample_latency_ms": 0.9848980000242591,
+      "batch_1000_latency_ms": 11.319400000502355,
+      "model_size_mb": 0.538945198059082,
+      "vectorizer_size_mb": 0.8872165679931641,
+      "total_size_mb": 1.426161766052246
+    },
+    "decision_tree": {
+      "single_sample_latency_ms": 0.21838800006662495,
+      "batch_1000_latency_ms": 10.686300000088522,
+      "model_size_mb": 0.057610511779785156,
+      "vectorizer_size_mb": 0.8872165679931641,
+      "total_size_mb": 0.9448270797729492
+    },
+    "random_forest": {
+      "single_sample_latency_ms": 29.650214000157575,
+      "batch_1000_latency_ms": 47.51430000032997,
+      "model_size_mb": 94.96640872955322,
+      "vectorizer_size_mb": 0.8872165679931641,
+      "total_size_mb": 95.85362529754639
+    }
+  }
+}

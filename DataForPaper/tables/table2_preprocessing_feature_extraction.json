@@ -1,0 +1,56 @@
+[
+  {
+    "Pipeline Stage": "HTML Entity Decoding",
+    "ISOT Configuration": "Applied (html.unescape)",
+    "LIAR Configuration": "Applied (html.unescape)",
+    "Purpose & Rationale": "Normalize &amp;, &quot;, &lt; to standard character representations"
+  },
+  {
+    "Pipeline Stage": "Case Normalization",
+    "ISOT Configuration": "Lowercase",
+    "LIAR Configuration": "Lowercase",
+    "Purpose & Rationale": "Eliminate case sensitivity across article and claim text"
+  },
+  {
+    "Pipeline Stage": "URL & HTML Tag Stripping",
+    "ISOT Configuration": "Regex removal of http/https/www and <tags>",
+    "LIAR Configuration": "Regex removal of http/https/www and <tags>",
+    "Purpose & Rationale": "Prevent web-scraping artifacts from introducing spurious shortcuts"
+  },
+  {
+    "Pipeline Stage": "Contraction Expansion",
+    "ISOT Configuration": "Expanded (e.g. wasn't -> was not, won't -> will not)",
+    "LIAR Configuration": "Expanded (e.g. wasn't -> was not, won't -> will not)",
+    "Purpose & Rationale": "Preserve semantic negation boundaries critical for deception detection"
+  },
+  {
+    "Pipeline Stage": "Non-Alphabetic Cleaning",
+    "ISOT Configuration": "Regex strip non-alphabetic ([^a-z\\s])",
+    "LIAR Configuration": "Regex strip non-alphabetic ([^a-z\\s])",
+    "Purpose & Rationale": "Remove punctuation noise and numerical tokens"
+  },
+  {
+    "Pipeline Stage": "Stopword Filtering",
+    "ISOT Configuration": "Enhanced Negation-Preserving Stopword Filtering",
+    "LIAR Configuration": "No Stopword Removal (Full Lexical Retention)",
+    "Purpose & Rationale": "Short claims (17 words) lose critical meaning if stopwords are removed"
+  },
+  {
+    "Pipeline Stage": "Lemmatization",
+    "ISOT Configuration": "WordNet Lemmatizer (Noun + Verb passes)",
+    "LIAR Configuration": "WordNet Lemmatizer (Noun + Verb passes)",
+    "Purpose & Rationale": "Reduce inflected forms to root lemma while retaining meaning"
+  },
+  {
+    "Pipeline Stage": "TF-IDF Vectorization",
+    "ISOT Configuration": "Unigrams + Bigrams (1, 2), Sublinear TF, max_features=10,000",
+    "LIAR Configuration": "Unigrams + Bigrams (1, 2), Sublinear TF, max_features=25,000",
+    "Purpose & Rationale": "Sublinear TF (1 + log(tf)) dampens high-frequency word saturation"
+  },
+  {
+    "Pipeline Stage": "Document Frequency Pruning",
+    "ISOT Configuration": "min_df=2, max_df=0.98",
+    "LIAR Configuration": "min_df=2, max_df=0.98",
+    "Purpose & Rationale": "Eliminate singletons and corpus-wide invariant terms"
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "Dataset": "ISOT (Our Cleaned)",
+    "Domain / Type": "Long-form News Articles",
+    "Total Samples": 39100,
+    "Fake Count": 17903,
+    "Fake %": "45.79%",
+    "Real Count": 21197,
+    "Real %": "54.21%",
+    "Train Set (80%)": 31280,
+    "Test Set (20%)": 7820,
+    "Avg Words (Raw)": "410.5",
+    "Avg Words (Clean)": "239.9",
+    "Min/Max Words": "3/5008"
+  },
+  {
+    "Dataset": "ISOT (Paper Raw)",
+    "Domain / Type": "Long-form News Articles",
+    "Total Samples": 44898,
+    "Fake Count": 23481,
+    "Fake %": "52.30%",
+    "Real Count": 21417,
+    "Real %": "47.70%",
+    "Train Set (80%)": 35918,
+    "Test Set (20%)": 8980,
+    "Avg Words (Raw)": "~410",
+    "Avg Words (Clean)": "N/A",
+    "Min/Max Words": "N/A"
+  },
+  {
+    "Dataset": "LIAR (Our Binary Split)",
+    "Domain / Type": "Short Claim Statements",
+    "Total Samples": 12791,
+    "Fake Count": 5657,
+    "Fake %": "44.23%",
+    "Real Count": 7134,
+    "Real %": "55.77%",
+    "Train Set (80%)": 10232,
+    "Test Set (20%)": 2559,
+    "Avg Words (Raw)": "18.0",
+    "Avg Words (Clean)": "17.2",
+    "Min/Max Words": "2/437"
+  },
+  {
+    "Dataset": "LIAR (Wang 2017 TSV)",
+    "Domain / Type": "Short Claim Statements",
+    "Total Samples": 12791,
+    "Fake Count": 5657,
+    "Fake %": "44.23%",
+    "Real Count": 7134,
+    "Real %": "55.77%",
+    "Train Set (80%)": 10240,
+    "Test Set (20%)": 2551,
+    "Avg Words (Raw)": "18.0",
+    "Avg Words (Clean)": "N/A",
+    "Min/Max Words": "N/A"
+  }
+]
