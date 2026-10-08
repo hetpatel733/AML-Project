@@ -95,12 +95,12 @@ export const Predict = () => {
                 <span className="spec-val font-mono">10,000 features</span>
               </div>
               <div className="spec-row">
-                <span className="spec-label">Primary Classifier</span>
-                <span className="spec-val font-mono">Passive Aggressive</span>
+                <span className="spec-label">Classifiers</span>
+                <span className="spec-val font-mono">5 Classical Models</span>
               </div>
               <div className="spec-row">
-                <span className="spec-label">Decision Boundary</span>
-                <span className="spec-val font-mono">Hinge Loss (C=1.0)</span>
+                <span className="spec-label">Split Strategy</span>
+                <span className="spec-val font-mono">80% Train / 20% Test</span>
               </div>
             </div>
           </div>

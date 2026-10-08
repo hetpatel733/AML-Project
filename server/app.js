@@ -63,6 +63,13 @@ app.use('/api/predictions', predictionRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api', datasetRoutes);
 
+// Static serving for generated model benchmark figures (confusion matrices, accuracy bar charts, PR curves)
+const figuresPath = path.resolve(__dirname, '../ml/results/figures');
+if (fs.existsSync(figuresPath)) {
+  console.log(`[Static] Serving benchmark visualization figures from: ${figuresPath}`);
+  app.use('/api/figures', express.static(figuresPath));
+}
+
 // Frontend static asset serving and SPA fallback (when built client exists)
 if (fs.existsSync(clientDistPath)) {
   console.log(`[Static] Serving frontend static assets from: ${clientDistPath}`);

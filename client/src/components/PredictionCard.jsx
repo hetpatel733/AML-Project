@@ -15,7 +15,6 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ConfidenceMeter from './ConfidenceMeter';
-import GeminiInsights from './GeminiInsights';
 
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
@@ -106,11 +105,6 @@ import GeminiInsights from './GeminiInsights';
             <span className="insight-tag"><CheckCircle2 size={12} /> Lemmatized Tokens</span>
           </div>
         </div>
-
-        {/* Gemini AI Insights Section */}
-        {prediction.geminiInsights && (
-          <GeminiInsights insights={prediction.geminiInsights} />
-        )}
 
         {/* Action Controls */}
         <div className="result-actions-footer">

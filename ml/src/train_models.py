@@ -1,345 +1,346 @@
-import os
 import json
 import time
-import numpy as np
-import joblib
+from datetime import datetime, timezone
 from pathlib import Path
-from sklearn.model_selection import StratifiedKFold
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import PassiveAggressiveClassifier, LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, confusion_matrix
+from typing import Any, Dict, Tuple
 
-import tensorflow as tf
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Input, Embedding, Conv1D, MaxPooling1D, Bidirectional, LSTM, Dense, Dropout
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.callbacks import EarlyStopping
+import joblib
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    accuracy_score,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
+)
+from sklearn.model_selection import StratifiedKFold, cross_validate
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
+from sklearn.tree import DecisionTreeClassifier
 
 from src.config import (
-    MODEL_TFIDF_PAC,
-    MODEL_TFIDF_RF,
-    MODEL_TFIDF_LR,
-    MODEL_GLOVE_CNN_BILSTM,
+    MODEL_DECISION_TREE,
+    MODEL_DISPLAY_NAMES,
+    MODEL_LINEAR_SVM,
+    MODEL_LOGISTIC_REGRESSION,
+    MODEL_MULTINOMIAL_NB,
+    MODEL_NAMES,
+    MODEL_RANDOM_FOREST,
+    get_benchmark_json_path,
+    get_metadata_path,
     get_model_dir,
     get_model_path,
-    get_keras_model_path,
     get_vectorizer_path,
-    get_tokenizer_path,
-    get_metadata_path,
-    get_predictions_dir,
-    KERAS_CONFIG,
-    GLOVE_PATH,
-    ensure_glove_embeddings
 )
-from src.data_preprocessing import load_isot_dataset, load_liar_dataset
-from src.evaluate import calculate_metrics, calculate_cv_statistics, save_predictions, write_dataset_benchmark
+from src.data_preprocessing import load_dataset
 
-def train_classical_model(model_name, X_train, y_train, X_val, y_val, X_test, y_test, dataset_name):
-    print(f"Training {model_name} on {dataset_name}...")
-    start_time = time.time()
-    
-    # 5-fold CV
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    fold_metrics = []
-    
-    for fold, (train_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
-        X_train_fold, X_val_fold = X_train[train_idx], X_train[val_idx]
-        y_train_fold, y_val_fold = y_train[train_idx], y_train[val_idx]
-        
-        vectorizer = TfidfVectorizer(max_features=5000)
-        X_train_fold_vec = vectorizer.fit_transform(X_train_fold)
-        X_val_fold_vec = vectorizer.transform(X_val_fold)
-        
-        if model_name == MODEL_TFIDF_PAC:
-            model = PassiveAggressiveClassifier(max_iter=1000, random_state=42, C=1.0)
-        elif model_name == MODEL_TFIDF_RF:
-            model = RandomForestClassifier(n_estimators=100, random_state=42)
-        elif model_name == MODEL_TFIDF_LR:
-            model = LogisticRegression(max_iter=1000, random_state=42)
-            
-        model.fit(X_train_fold_vec, y_train_fold)
-        y_pred = model.predict(X_val_fold_vec)
-        if hasattr(model, "predict_proba"):
-            y_score = model.predict_proba(X_val_fold_vec)[:, 1]
-        elif hasattr(model, "decision_function"):
-            y_score = model.decision_function(X_val_fold_vec)
-        else:
-            y_score = None
-        
-        metrics = calculate_metrics(y_val_fold, y_pred, y_score)
-        fold_metrics.append(metrics)
-        
-    cv_stats = calculate_cv_statistics(fold_metrics)
-    
-    # Final training on full train set
-    vectorizer = TfidfVectorizer(max_features=5000)
-    X_train_vec = vectorizer.fit_transform(X_train)
-    X_test_vec = vectorizer.transform(X_test)
-    
-    if model_name == MODEL_TFIDF_PAC:
-        model = PassiveAggressiveClassifier(max_iter=1000, random_state=42, C=1.0)
-    elif model_name == MODEL_TFIDF_RF:
-        model = RandomForestClassifier(n_estimators=100, random_state=42)
-    elif model_name == MODEL_TFIDF_LR:
-        model = LogisticRegression(max_iter=1000, random_state=42)
-        
-    model.fit(X_train_vec, y_train)
-    y_pred = model.predict(X_test_vec)
-    if hasattr(model, "predict_proba"):
-        y_score = model.predict_proba(X_test_vec)[:, 1]
-    elif hasattr(model, "decision_function"):
-        y_score = model.decision_function(X_test_vec)
-    else:
-        y_score = None
-    
-    test_metrics = calculate_metrics(y_test, y_pred, y_score)
-    training_time = time.time() - start_time
-    
-    # Save artifacts
-    model_dir = get_model_dir(dataset_name, model_name)
-    model_dir.mkdir(parents=True, exist_ok=True)
-    
-    joblib.dump(model, get_model_path(dataset_name, model_name))
-    joblib.dump(vectorizer, get_vectorizer_path(dataset_name, model_name))
-    
-    metadata = {
-        "dataset": dataset_name,
-        "model": model_name,
-        "training_time": training_time,
-        "cv_stats": cv_stats,
-        "test_metrics": test_metrics,
-        "hyperparameters": {"max_features": 5000, "ngram_range": [1, 1], "random_state": 42}
-    }
-    with open(get_metadata_path(dataset_name, model_name), "w") as f:
-        json.dump(metadata, f, indent=4)
-        
-    # Save predictions
-    save_predictions(dataset_name, model_name, "v1", X_test, y_test, y_pred, y_score if y_score is not None else [None]*len(y_pred), get_predictions_dir(dataset_name))
-    
-    return metadata, fold_metrics, cv_stats, test_metrics, y_pred, y_score
+RANDOM_STATE = 42
 
-def load_glove_embedding_matrix(tokenizer, glove_path, vocab_size, embedding_dim):
-    embeddings_index = {}
-    with open(glove_path, "r", encoding="utf-8") as glove_file:
-        for line in glove_file:
-            values = line.split()
-            word = values[0]
-            vector = np.asarray(values[1:], dtype="float32")
-            embeddings_index[word] = vector
+# Selected optimal TF-IDF parameters from training-set CV exploration
+TFIDF_CONFIG = {
+    "ngram_range": [1, 2],
+    "sublinear_tf": True,
+    "min_df": 2,
+    "max_df": 0.98,
+    "max_features": 10000,
+}
 
-    embedding_matrix = np.zeros((vocab_size + 1, embedding_dim), dtype="float32")
-    for word, index in tokenizer.word_index.items():
-        if index <= vocab_size:
-            embedding_vector = embeddings_index.get(word)
-            if embedding_vector is not None:
-                embedding_matrix[index] = embedding_vector
-    return embedding_matrix
+# Baseline paper accuracies for replication comparison
+PAPER_BASELINES = {
+    "isot": {
+        MODEL_LOGISTIC_REGRESSION: 0.98836,
+        MODEL_MULTINOMIAL_NB: 0.94910,
+        MODEL_LINEAR_SVM: 0.99373,
+        MODEL_DECISION_TREE: 0.99437,
+        MODEL_RANDOM_FOREST: 0.99604,
+    },
+    "liar": {
+        MODEL_LOGISTIC_REGRESSION: 0.61079,
+        MODEL_MULTINOMIAL_NB: 0.60688,
+        MODEL_LINEAR_SVM: 0.57562,
+        MODEL_DECISION_TREE: 0.56311,
+        MODEL_RANDOM_FOREST: 0.60883,
+    },
+}
 
 
-def build_keras_model(vocab_size, embedding_dim, sequence_length, embedding_matrix=None):
-    model = Sequential()
-    model.add(Input(shape=(sequence_length,), dtype="int32"))
-    if embedding_matrix is not None:
-        model.add(Embedding(vocab_size + 1, embedding_dim, weights=[embedding_matrix], trainable=False))
-    else:
-        model.add(Embedding(vocab_size, embedding_dim))
-    model.add(Conv1D(filters=128, kernel_size=5, activation="relu"))
-    model.add(MaxPooling1D(pool_size=2))
-    model.add(Bidirectional(LSTM(64)))
-    model.add(Dropout(0.5))
-    model.add(Dense(64, activation="relu"))
-    model.add(Dense(1, activation="sigmoid"))
-    model.compile(optimizer="adam", loss="binary_crossentropy", metrics=["accuracy"])
-    return model
-
-def train_keras_model(model_name, X_train, y_train, X_val, y_val, X_test, y_test, dataset_name):
-    print(f"Training {model_name} on {dataset_name}...")
-    ensure_glove_embeddings()
-    start_time = time.time()
-    
-    vocab_size = KERAS_CONFIG["vocab_size"]
-    sequence_length = KERAS_CONFIG["sequence_length"]
-    embedding_dim = KERAS_CONFIG["embedding_dim"]
-    
-    # 5-fold CV
-    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-    fold_metrics = []
-    
-    for fold, (train_idx, val_idx) in enumerate(skf.split(X_train, y_train)):
-        X_train_fold, X_val_fold = X_train[train_idx], X_train[val_idx]
-        y_train_fold, y_val_fold = y_train[train_idx], y_train[val_idx]
-        
-        tokenizer = Tokenizer(num_words=vocab_size, oov_token="<OOV>")
-        tokenizer.fit_on_texts(X_train_fold)
-        embedding_matrix = load_glove_embedding_matrix(tokenizer, GLOVE_PATH, vocab_size, embedding_dim)
-        
-        X_train_fold_seq = pad_sequences(tokenizer.texts_to_sequences(X_train_fold), maxlen=sequence_length)
-        X_val_fold_seq = pad_sequences(tokenizer.texts_to_sequences(X_val_fold), maxlen=sequence_length)
-        
-        model = build_keras_model(vocab_size, embedding_dim, sequence_length, embedding_matrix)
-        
-        early_stopping = EarlyStopping(monitor="val_loss", patience=3, restore_best_weights=True)
-        
-        model.fit(X_train_fold_seq, y_train_fold, validation_data=(X_val_fold_seq, y_val_fold), epochs=10, batch_size=32, callbacks=[early_stopping], verbose=0)
-        
-        y_score = model.predict(X_val_fold_seq).flatten()
-        y_pred = (y_score > 0.5).astype(int)
-        
-        metrics = calculate_metrics(y_val_fold, y_pred, y_score)
-        fold_metrics.append(metrics)
-        
-    cv_stats = calculate_cv_statistics(fold_metrics)
-    
-    # Final training on full train set
-    tokenizer = Tokenizer(num_words=vocab_size, oov_token="<OOV>")
-    tokenizer.fit_on_texts(X_train)
-    embedding_matrix = load_glove_embedding_matrix(tokenizer, GLOVE_PATH, vocab_size, embedding_dim)
-    
-    X_train_seq = pad_sequences(tokenizer.texts_to_sequences(X_train), maxlen=sequence_length)
-    X_test_seq = pad_sequences(tokenizer.texts_to_sequences(X_test), maxlen=sequence_length)
-    
-    model = build_keras_model(vocab_size, embedding_dim, sequence_length, embedding_matrix)
-    
-    early_stopping = EarlyStopping(monitor="val_loss", patience=3, restore_best_weights=True)
-    
-    # We use X_val for early stopping in final training
-    X_val_seq = pad_sequences(tokenizer.texts_to_sequences(X_val), maxlen=sequence_length)
-    
-    history = model.fit(X_train_seq, y_train, validation_data=(X_val_seq, y_val), epochs=10, batch_size=32, callbacks=[early_stopping], verbose=1)
-    
-    y_score = model.predict(X_test_seq).flatten()
-    y_pred = (y_score > 0.5).astype(int)
-    
-    test_metrics = calculate_metrics(y_test, y_pred, y_score)
-    training_time = time.time() - start_time
-    
-    # Save artifacts
-    model_dir = get_model_dir(dataset_name, model_name)
-    model_dir.mkdir(parents=True, exist_ok=True)
-    
-    model.save(get_keras_model_path(dataset_name, model_name))
-    joblib.dump(tokenizer, get_tokenizer_path(dataset_name, model_name))
-    
-    metadata = {
-        "dataset": dataset_name,
-        "model": model_name,
-        "training_time": training_time,
-        "cv_stats": cv_stats,
-        "test_metrics": test_metrics,
-        "best_epoch": int(np.argmin(history.history["val_loss"]) + 1),
-        "training_history": history.history,
-        "hyperparameters": KERAS_CONFIG
-    }
-    with open(get_metadata_path(dataset_name, model_name), "w") as f:
-        json.dump(metadata, f, indent=4)
-        
-    # Save predictions
-    save_predictions(dataset_name, model_name, "v1", X_test, y_test, y_pred, y_score, get_predictions_dir(dataset_name))
-    
-    return metadata, fold_metrics, cv_stats, test_metrics, y_pred, y_score
-
-def main():
-    print("Loading ISOT dataset...")
-    X_train_isot, X_val_isot, X_test_isot, y_train_isot, y_val_isot, y_test_isot = load_isot_dataset()
-    
-    print("Loading LIAR dataset...")
-    X_train_liar, X_val_liar, X_test_liar, y_train_liar, y_val_liar, y_test_liar = load_liar_dataset()
-    
-    datasets = {
-        "isot": (X_train_isot, y_train_isot, X_val_isot, y_val_isot, X_test_isot, y_test_isot),
-        "liar": (X_train_liar, y_train_liar, X_val_liar, y_val_liar, X_test_liar, y_test_liar)
-    }
-    
-    classical_models = [MODEL_TFIDF_PAC, MODEL_TFIDF_RF, MODEL_TFIDF_LR]
-    
-    for dataset_name, (X_train, y_train, X_val, y_val, X_test, y_test) in datasets.items():
-        model_results = []
-        test_predictions = []
-        for model_name in classical_models:
-            metadata, fold_metrics, cv_stats, test_metrics, y_pred, y_score = train_classical_model(model_name, X_train, y_train, X_val, y_val, X_test, y_test, dataset_name)
-            test_predictions.append((model_name, cv_stats.get("f1_mean", 0.0), y_pred, y_score))
-            model_results.append({
-                "model": model_name,
-                "name": {MODEL_TFIDF_PAC: "TF-IDF + Passive Aggressive Classifier", MODEL_TFIDF_RF: "TF-IDF + Random Forest", MODEL_TFIDF_LR: "TF-IDF + Logistic Regression"}[model_name],
-                "representation": "TF-IDF",
-                "cv_folds": fold_metrics,
-                "cv_stats": cv_stats,
-                "test_metrics": test_metrics,
-                "training_time": metadata["training_time"],
-                "hyperparameters": metadata["hyperparameters"],
-                "artifact_path": str(get_model_dir(dataset_name, model_name)),
-                "prediction_archive": f"ml/results/{dataset_name}/predictions/v1_{model_name}_predictions.jsonl"
-            })
-            
-        try:
-            metadata, fold_metrics, cv_stats, test_metrics, y_pred, y_score = train_keras_model(MODEL_GLOVE_CNN_BILSTM, X_train, y_train, X_val, y_val, X_test, y_test, dataset_name)
-            test_predictions.append((MODEL_GLOVE_CNN_BILSTM, cv_stats.get("f1_mean", 0.0), y_pred, y_score))
-            model_results.append({
-                "model": MODEL_GLOVE_CNN_BILSTM,
-                "name": "GloVe + CNN-BiLSTM + Dense Softmax",
-                "type": "deep_learning",
-                "representation": "GloVe",
-                "cv_folds": fold_metrics,
-                "cv_stats": cv_stats,
-                "test_metrics": test_metrics,
-                "training_time": metadata["training_time"],
-                "hyperparameters": metadata["hyperparameters"],
-                "training_history": metadata["training_history"],
-                "artifact_path": str(get_model_dir(dataset_name, MODEL_GLOVE_CNN_BILSTM)),
-                "prediction_archive": f"ml/results/{dataset_name}/predictions/v1_{MODEL_GLOVE_CNN_BILSTM}_predictions.jsonl"
-            })
-        except Exception as e:
-            print(f"Failed to train Keras model on {dataset_name}: {e}")
-            model_results.append({
-                "model": MODEL_GLOVE_CNN_BILSTM,
-                "name": "GloVe + CNN-BiLSTM + Dense Softmax",
-                "type": "deep_learning",
-                "representation": "GloVe",
-                "status": "unavailable",
-                "reason": str(e),
-                "cv_folds": [],
-                "cv_stats": {},
-                "test_metrics": {},
-                "training_time": None,
-                "artifact_path": None,
-                "prediction_archive": None
-            })
-
-        weights = np.array([item[1] for item in test_predictions], dtype=float)
-        weights = weights / weights.sum() if weights.sum() else np.ones(len(test_predictions)) / max(1, len(test_predictions))
-        hard_pred = (np.mean([item[2] for item in test_predictions], axis=0) >= 0.5).astype(int)
-        soft_scores = []
-        for _, _, _, scores in test_predictions:
-            values = np.asarray(scores, dtype=float)
-            if np.any((values < 0) | (values > 1)):
-                values = 1.0 / (1.0 + np.exp(-values))
-            soft_scores.append(values)
-        soft_score = np.average(soft_scores, axis=0, weights=weights)
-        soft_pred = (soft_score >= 0.5).astype(int)
-        soft_metrics = calculate_metrics(y_test, soft_pred, soft_score)
-        hard_metrics = calculate_metrics(y_test, hard_pred)
-        ensemble = {
-            "models": [item[0] for item in test_predictions],
-            "votingMethod": "validation-weighted soft voting and majority hard voting",
-            "weights": {item[0]: float(weights[index]) for index, item in enumerate(test_predictions)},
-            "validationBasis": "normalized five-fold CV F1 mean",
-            "soft": {"metrics": soft_metrics, "confusionMatrix": {"labels": ["FAKE", "REAL"], "matrix": [[soft_metrics["tn"], soft_metrics["fp"]], [soft_metrics["fn"], soft_metrics["tp"]]]}},
-            "hard": {"metrics": hard_metrics, "confusionMatrix": {"labels": ["FAKE", "REAL"], "matrix": [[hard_metrics["tn"], hard_metrics["fp"]], [hard_metrics["fn"], hard_metrics["tp"]]]}}
-        }
-
-        write_dataset_benchmark(
-            dataset_name,
-            "v2",
-            time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            {"training": (X_train, y_train), "validation": (X_val, y_val), "testing": (X_test, y_test)},
-            {"false": 0, "barely-true": 0, "pants-fire": 0, "true": 1, "mostly-true": 1, "half-true": 1} if dataset_name == "liar" else {"FAKE": 0, "REAL": 1},
-            {"textCleaning": "lowercase, URL/HTML/punctuation/number removal, stopword removal", "tfidf": {"maxFeatures": 5000, "ngramRange": [1, 1]}},
-            model_results,
-            ensemble
+def build_model(model_name: str):
+    if model_name == MODEL_LOGISTIC_REGRESSION:
+        return LogisticRegression(C=1.0, max_iter=1000, random_state=RANDOM_STATE)
+    if model_name == MODEL_MULTINOMIAL_NB:
+        return MultinomialNB(alpha=1.0)
+    if model_name == MODEL_LINEAR_SVM:
+        return LinearSVC(C=1.0, random_state=RANDOM_STATE)
+    if model_name == MODEL_DECISION_TREE:
+        return DecisionTreeClassifier(random_state=RANDOM_STATE)
+    if model_name == MODEL_RANDOM_FOREST:
+        return RandomForestClassifier(
+            n_estimators=100,
+            max_depth=None,
+            random_state=RANDOM_STATE,
+            n_jobs=-1,
         )
+    raise ValueError(f"Unknown model: {model_name}")
+
+
+def _scores(model: Any, features) -> np.ndarray:
+    if hasattr(model, "predict_proba"):
+        probabilities = model.predict_proba(features)
+        positive_index = list(model.classes_).index(1)
+        return probabilities[:, positive_index]
+    return np.asarray(model.decision_function(features), dtype=float)
+
+
+def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray, scores: np.ndarray) -> Dict[str, Any]:
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+    roc_auc = roc_auc_score(y_true, scores)
+    metrics = {
+        "accuracy": float(accuracy_score(y_true, y_pred)),
+        "precision": float(precision_score(y_true, y_pred, zero_division=0)),
+        "recall": float(recall_score(y_true, y_pred, zero_division=0)),
+        "f1": float(f1_score(y_true, y_pred, zero_division=0)),
+        "roc_auc": float(roc_auc),
+        "rocAuc": float(roc_auc),
+        "confusion_matrix": [[int(tn), int(fp)], [int(fn), int(tp)]],
+        "tn": int(tn),
+        "fp": int(fp),
+        "fn": int(fn),
+        "tp": int(tp),
+    }
+    return metrics
+
+
+def train_one(dataset: str, model_name: str, x_train, x_test, y_train, y_test) -> Dict[str, Any]:
+    started = time.perf_counter()
+    
+    # Preprocessing & Vectorization with selected configuration
+    vectorizer = TfidfVectorizer(
+        ngram_range=(TFIDF_CONFIG["ngram_range"][0], TFIDF_CONFIG["ngram_range"][1]),
+        sublinear_tf=TFIDF_CONFIG["sublinear_tf"],
+        min_df=TFIDF_CONFIG["min_df"],
+        max_df=TFIDF_CONFIG["max_df"],
+        max_features=TFIDF_CONFIG["max_features"],
+    )
+    
+    # Fit vectorizer strictly on training partition
+    train_features = vectorizer.fit_transform(x_train)
+    test_features = vectorizer.transform(x_test)
+    
+    # 5-Fold Stratified Cross Validation on training features only
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+    cv_model = build_model(model_name)
+    cv_results = cross_validate(
+        cv_model,
+        train_features,
+        y_train,
+        cv=skf,
+        scoring=["accuracy", "f1", "precision", "recall"],
+        n_jobs=-1,
+    )
+    
+    # Final Model Training on full 80% train split
+    model = build_model(model_name)
+    model.fit(train_features, y_train)
+    
+    # Final Evaluation on untouched 20% test partition
+    predictions = model.predict(test_features)
+    scores = _scores(model, test_features)
+    metrics = calculate_metrics(y_test, predictions, scores)
+    training_time = time.perf_counter() - started
+
+    # Comparison against Paper Baseline
+    paper_baseline = PAPER_BASELINES.get(dataset, {}).get(model_name, None)
+    if paper_baseline is not None:
+        delta = metrics["accuracy"] - paper_baseline
+        gain_pct = (delta / paper_baseline) * 100
+        paper_comparison = {
+            "accuracy": paper_baseline,
+            "source": "Paper Baseline Replication",
+            "delta": float(delta),
+            "percentageGain": f"{gain_pct:+.2f}%",
+            "improved": bool(delta >= 0),
+        }
+    else:
+        paper_comparison = None
+
+    # Model persistence
+    model_dir = get_model_dir(dataset, model_name)
+    model_dir.mkdir(parents=True, exist_ok=True)
+    joblib.dump(model, get_model_path(dataset, model_name))
+    joblib.dump(vectorizer, get_vectorizer_path(dataset, model_name))
+
+    cv_summary = {
+        "folds": 5,
+        "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+        "mean": {
+            "accuracy": float(np.mean(cv_results["test_accuracy"])),
+            "f1": float(np.mean(cv_results["test_f1"])),
+            "precision": float(np.mean(cv_results["test_precision"])),
+            "recall": float(np.mean(cv_results["test_recall"])),
+        },
+        "std": {
+            "accuracy": float(np.std(cv_results["test_accuracy"])),
+            "f1": float(np.std(cv_results["test_f1"])),
+            "precision": float(np.std(cv_results["test_precision"])),
+            "recall": float(np.std(cv_results["test_recall"])),
+        },
+        "scores": {
+            "accuracy": [float(s) for s in cv_results["test_accuracy"]],
+            "f1": [float(s) for s in cv_results["test_f1"]],
+        },
+    }
+
+    metadata = {
+        "dataset": dataset,
+        "model": model_name,
+        "name": MODEL_DISPLAY_NAMES[model_name],
+        "training_time_seconds": training_time,
+        "parameters": model.get_params(),
+        "tfidf": TFIDF_CONFIG,
+        "preprocessing": [
+            "HTML entity decoding",
+            "lowercase conversion",
+            "URL and HTML tag removal",
+            "contraction expansion for negation retention",
+            "non-alphabetic character cleaning",
+            "whitespace normalization",
+            "negation-preserving English stopword filtering",
+            "WordNet lemmatization",
+        ],
+        "train_count": len(y_train),
+        "test_count": len(y_test),
+        "metrics": metrics,
+        "crossValidation": cv_summary,
+        "paperReference": paper_comparison,
+    }
+    with get_metadata_path(dataset, model_name).open("w", encoding="utf-8") as file:
+        json.dump(metadata, file, indent=2)
+
+    return {
+        "id": model_name,
+        "name": MODEL_DISPLAY_NAMES[model_name],
+        "type": "classical_ml",
+        "representation": "TF-IDF (unigrams + bigrams, sublinear TF)",
+        "status": "trained",
+        "parameters": metadata["parameters"],
+        "trainingTime": training_time,
+        "training": {"count": len(y_train), "percentage": 80.0},
+        "validation": {"used": False, "count": 0, "percentage": 0.0},
+        "test": {"count": len(y_test), "percentage": 20.0, "metrics": metrics},
+        "metrics": metrics,
+        "crossValidation": cv_summary,
+        "paperReference": paper_comparison,
+        "improvementAgainstPaper": {
+            "paperBaselineAccuracy": paper_baseline,
+            "accuracyDelta": float(metrics["accuracy"] - paper_baseline) if paper_baseline else 0.0,
+            "percentageGain": f"{((metrics['accuracy'] - paper_baseline) / paper_baseline) * 100:+.2f}%" if paper_baseline else "0.00%",
+            "improved": bool((metrics["accuracy"] - paper_baseline) >= 0) if paper_baseline else True,
+        },
+        "confusionMatrix": {
+            "labels": ["FAKE", "REAL"],
+            "matrix": metrics["confusion_matrix"],
+            "truePositive": metrics["tp"],
+            "trueNegative": metrics["tn"],
+            "falsePositive": metrics["fp"],
+            "falseNegative": metrics["fn"],
+        },
+        "artifactPath": str(model_dir),
+    }
+
+
+def _class_distribution(labels: np.ndarray) -> Dict[str, int]:
+    return {"FAKE": int(np.sum(labels == 0)), "REAL": int(np.sum(labels == 1))}
+
+
+def write_benchmark(dataset: str, x_train, x_test, y_train, y_test, models) -> Path:
+    total = len(y_train) + len(y_test)
+    benchmark = {
+        "dataset": {
+            "id": dataset,
+            "name": dataset.upper(),
+            "description": "Binary fake-news classification dataset.",
+            "totalRecords": total,
+            "classes": ["FAKE", "REAL"],
+            "classDistribution": _class_distribution(np.concatenate([y_train, y_test])),
+            "labelMapping": {"0": "FAKE", "1": "REAL"},
+            "preprocessing": {
+                "lowercase": True,
+                "removePunctuation": True,
+                "removeSpecialCharacters": True,
+                "removeUrlsAndHtml": True,
+                "normalizeWhitespace": True,
+                "expandContractions": True,
+                "preserveNegationWords": True,
+                "removeStopwords": "custom (negation-preserving)",
+                "lemmatization": "WordNet",
+                "tokenization": "whitespace & alphabetic tokens with contraction expansion",
+                "vectorizer": "TF-IDF",
+                "ngramRange": TFIDF_CONFIG["ngram_range"],
+                "sublinearTf": TFIDF_CONFIG["sublinear_tf"],
+                "minDf": TFIDF_CONFIG["min_df"],
+                "maxDf": TFIDF_CONFIG["max_df"],
+                "maxFeatures": TFIDF_CONFIG["max_features"],
+            },
+        },
+        "experiment": {
+            "version": "improved-preprocessing-v2",
+            "name": "Improved Preprocessing Pipeline with Negation Preservation & Sublinear TF-IDF",
+            "trainingTimestamp": datetime.now(timezone.utc).isoformat(),
+            "randomSeed": RANDOM_STATE,
+            "split": "stratified 80% training / 20% testing",
+            "validation": {
+                "used": False,
+                "reason": "No separate validation split. Preprocessing experiments conducted on 80% train split via 5-fold CV; final evaluation on untouched 20% test partition.",
+            },
+            "crossValidationOnTrain": {
+                "folds": 5,
+                "strategy": "StratifiedKFold on 80% training partition only",
+            },
+        },
+        "splits": {
+            "training": {"count": len(y_train), "percentage": 80.0, "classDistribution": _class_distribution(y_train)},
+            "validation": {"count": 0, "percentage": 0.0, "used": False},
+            "testing": {"count": len(y_test), "percentage": 20.0, "classDistribution": _class_distribution(y_test)},
+        },
+        "models": models,
+        "ensemble": {"status": "not_used", "reason": "Models were trained and evaluated separately."},
+    }
+    path = get_benchmark_json_path(dataset)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as file:
+        json.dump(benchmark, file, indent=2, allow_nan=False)
+    return path
+
+
+def train_dataset(dataset: str) -> Path:
+    print(f"\n=======================================================")
+    print(f" TRAINING AND EVALUATING ON {dataset.upper()}")
+    print(f"=======================================================")
+    x_train, x_test, y_train, y_test = load_dataset(dataset, test_size=0.2)
+    print(f"Loaded {dataset.upper()}: Train={len(y_train)}, Test={len(y_test)}")
+    results = []
+    for model_name in MODEL_NAMES:
+        print(f"  Training {MODEL_DISPLAY_NAMES[model_name]}...")
+        res = train_one(dataset, model_name, x_train, x_test, y_train, y_test)
+        acc = res["metrics"]["accuracy"]
+        f1 = res["metrics"]["f1"]
+        paper_acc = PAPER_BASELINES.get(dataset, {}).get(model_name, 0.0)
+        delta = acc - paper_acc
+        print(f"    -> Test Accuracy: {acc*100:.2f}% (Paper: {paper_acc*100:.2f}%, Delta: {delta*100:+.2f}%), F1: {f1*100:.2f}%")
+        results.append(res)
+    benchmark_path = write_benchmark(dataset, x_train, x_test, y_train, y_test, results)
+    return benchmark_path
+
+
+def main() -> None:
+    for dataset in ("isot", "liar"):
+        benchmark_path = train_dataset(dataset)
+        print(f"Wrote {benchmark_path}")
+
 
 if __name__ == "__main__":
     main()
-

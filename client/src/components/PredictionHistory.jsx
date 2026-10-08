@@ -150,9 +150,9 @@ export const PredictionHistory = ({
 
               const hard = sim.ensembles?.majority_voting_hard_ensemble || {};
               const soft = sim.ensembles?.weighted_soft_ensemble || {};
-              const realVotes = hard.real_votes ?? (isFake ? 0 : 6);
-              const fakeVotes = hard.fake_votes ?? (isFake ? 6 : 0);
-              const modelCount = sim.candidate_models?.length || 4;
+              const modelCount = sim.candidate_models?.length || 5;
+              const realVotes = hard.real_votes ?? (isFake ? 0 : modelCount);
+              const fakeVotes = hard.fake_votes ?? (isFake ? modelCount : 0);
               const isUnanimous = realVotes === modelCount || fakeVotes === modelCount;
               const wordCount = sim.article_analysis?.word_count ?? (item.text ? item.text.trim().split(/\s+/).length : 0);
               const ttr = sim.article_analysis?.lexical_diversity ?? 0.65;

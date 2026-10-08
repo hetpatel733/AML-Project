@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ShieldCheck, 
@@ -18,41 +18,60 @@ import {
   FlaskConical,
   BookOpen
 } from 'lucide-react';
+import { getBenchmarks } from '../services/api';
+import { useDataset } from '../context/DatasetContext';
 
 export const Home = () => {
+  const { selectedDataset } = useDataset();
+  const [topAccuracy, setTopAccuracy] = useState('99.6%');
+  const [modelCount, setModelCount] = useState(5);
+
+  useEffect(() => {
+    getBenchmarks(selectedDataset)
+      .then((res) => {
+        if (res.data?.models && res.data.models.length > 0) {
+          setModelCount(res.data.models.length);
+          const highestAcc = Math.max(...res.data.models.map(m => m.metrics?.accuracy || 0));
+          if (highestAcc > 0) {
+            setTopAccuracy(`${(highestAcc * 100).toFixed(1)}%`);
+          }
+        }
+      })
+      .catch((err) => console.log('Home benchmark fetch fallback:', err));
+  }, [selectedDataset]);
   const steps = [
     {
       step: '01',
-      title: 'Text Processing',
-      desc: 'Clean and normalize text by removing noise and standardizing language patterns.',
+      title: 'Text Preprocessing',
+      desc: 'Clean and normalize text with lowercasing, punctuation/digit removal, stop-words filtering, and WordNet lemmatization.',
       icon: FileCheck
     },
     {
       step: '02',
-      title: 'Feature Extraction',
-      desc: 'Convert text into numerical features using TF-IDF and Bag-of-Words vectorization.',
+      title: 'TF-IDF Vectorization',
+      desc: 'Extract n-gram features (unigrams + bigrams) with sublinear TF-IDF scaling (10,000 max features).',
       icon: Binary
     },
     {
       step: '03',
-      title: 'Multi-Model Analysis',
-      desc: 'Run predictions through 6 independent classifiers for robust evaluation.',
+      title: '5-Model Classification',
+      desc: 'Evaluate text across Logistic Regression, Naive Bayes, Linear SVM, Decision Tree, and Random Forest.',
       icon: Cpu
     },
     {
       step: '04',
-      title: 'Ensemble Consensus',
-      desc: 'Combine model predictions using weighted ensemble and majority voting.',
+      title: 'Performance & Consensus',
+      desc: 'Analyze individual model probabilities, benchmark performance, and consensus metrics across datasets.',
       icon: ShieldCheck
     }
   ];
 
   const technologies = [
     { name: 'React & Vite', category: 'Frontend', desc: 'Modern component-based UI with fast development workflow.' },
-    { name: 'Interactive Charts', category: 'Visualization', desc: 'Real-time data visualization and performance metrics.' },
-    { name: 'FastAPI & Scikit-Learn', category: 'ML Service', desc: 'Python-based machine learning inference with calibrated models.' },
-    { name: 'TF-IDF & BoW', category: 'NLP', desc: 'Text vectorization with unigram and bigram feature extraction.' },
-    { name: 'Ensemble Models', category: 'Classification', desc: 'Weighted consensus from multiple classifiers for accuracy.' },
+    { name: 'Interactive D3.js', category: 'Visualization', desc: 'Real-time data visualization and performance benchmarks.' },
+    { name: 'FastAPI & Scikit-Learn', category: 'ML Service', desc: 'Python-based machine learning inference with 5 classical classifiers.' },
+    { name: 'TF-IDF (1,2-grams)', category: 'NLP', desc: 'Text vectorization with unigram and bigram feature extraction up to 10k features.' },
+    { name: '5 ML Classifiers', category: 'Classification', desc: 'Logistic Regression, Naive Bayes, Linear SVM, Decision Tree, Random Forest.' },
     { name: 'Node.js API', category: 'Backend', desc: 'REST API connecting frontend with ML inference services.' }
   ];
 
@@ -73,7 +92,7 @@ export const Home = () => {
 
           <p className="hero-description">
             Advanced AI platform for analyzing and classifying news authenticity using natural language processing 
-            and ensemble machine learning models.
+            and 5 supervised machine learning models.
           </p>
 
           <div className="hero-cta-group">
@@ -97,18 +116,18 @@ export const Home = () => {
           {/* Quick Metrics Bar */}
           <div className="hero-stats-row">
             <div className="hero-stat-item">
-              <span className="hero-stat-num font-mono">99.1%</span>
-              <span className="hero-stat-label">Ensemble Test F1 Score</span>
+              <span className="hero-stat-num font-mono">{topAccuracy}</span>
+              <span className="hero-stat-label">Top Test Accuracy ({selectedDataset.toUpperCase()})</span>
             </div>
             <div className="hero-stat-divider"></div>
             <div className="hero-stat-item">
-              <span className="hero-stat-num font-mono">4 Models</span>
-              <span className="hero-stat-label">Parallel Classifiers</span>
+              <span className="hero-stat-num font-mono">{modelCount} Models</span>
+              <span className="hero-stat-label">Supervised Classifiers</span>
             </div>
             <div className="hero-stat-divider"></div>
             <div className="hero-stat-item">
-              <span className="hero-stat-num font-mono">70/15/15</span>
-              <span className="hero-stat-label">Zero-Leakage Split</span>
+              <span className="hero-stat-num font-mono">80 / 20</span>
+              <span className="hero-stat-label">Train / Test Split</span>
             </div>
           </div>
         </div>
@@ -214,7 +233,7 @@ export const Home = () => {
           <div className="cta-banner-left">
             <h3 className="cta-banner-title">Ready to Test an Article in the Multi-Model Lab?</h3>
             <p className="cta-banner-text">
-              Simulate 6 machine learning models, dual ensemble fusion, and live NLP feature weights in real-time.
+              Simulate 5 machine learning models, cross-model comparison, and live NLP feature weights in real-time.
             </p>
           </div>
           <div className="cta-banner-right">

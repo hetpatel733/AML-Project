@@ -134,10 +134,11 @@ export const SAMPLE_NEWS_ARTICLES = [
 export const getArchitectureFamily = (modelName = '') => {
   const name = String(modelName).toLowerCase();
   if (name.includes('logistic') || name.includes('logreg')) return 'Linear Probabilistic (Logit)';
-  if (name.includes('svm') || name.includes('support') || name.includes('linear svm')) return 'Maximum Margin Hyperplane (Linear SVM)';
+  if (name.includes('svm') || name.includes('support') || name.includes('linear svc') || name.includes('linear svm')) return 'Maximum Margin Hyperplane (Linear SVM)';
   if (name.includes('naive') || name.includes('bayes') || name.includes('mnb')) return 'Probabilistic Bayesian (Multinomial)';
+  if (name.includes('decision tree') || name.includes('tree') || name.includes('dt')) return 'Recursive Partitioning (Decision Tree)';
+  if (name.includes('forest') || name.includes('random') || name.includes('rf')) return 'Ensemble Decision Trees (Bagging)';
   if (name.includes('passive') || name.includes('aggressive') || name.includes('pac')) return 'Online Margin Classification (PAC)';
-  if (name.includes('forest') || name.includes('random')) return 'Ensemble Decision Trees (Bagging)';
   if (name.includes('glove') || name.includes('cnn') || name.includes('bilstm') || name.includes('lstm')) return 'Neural Sequence Model (GloVe + CNN-BiLSTM)';
   return 'Supervised Classifier';
 };
@@ -240,7 +241,7 @@ export const normalizeSimulationData = (data, inputTitle = '', inputText = '') =
   const softConf = rawSoft.confidence ?? (softPred === 'REAL' ? softRealProb : softFakeProb);
 
   const hardPred = rawHard.prediction || softPred;
-  const totalVotes = Math.max(1, candidate_models.length || 4);
+  const totalVotes = Math.max(1, candidate_models.length || 5);
   const realVotes = rawHard.real_votes ?? (candidate_models.filter(m => m.prediction === 'REAL').length || (hardPred === 'REAL' ? totalVotes : 0));
   const fakeVotes = rawHard.fake_votes ?? (totalVotes - realVotes);
   const votePercentage = rawHard.vote_percentage ?? Number(((Math.max(realVotes, fakeVotes) / totalVotes) * 100).toFixed(1));

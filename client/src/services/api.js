@@ -66,3 +66,23 @@ export const getExperimentMetadata = async (dataset = 'isot') => {
   const response = await apiClient.get(`/benchmarks/${dataset}`);
   return { data: response.data?.data ?? response.data, isMock: false };
 };
+
+export const getBenchmarks = async (dataset = 'isot') => {
+  const response = await apiClient.get(`/benchmarks/${dataset}`);
+  return { data: response.data?.data ?? response.data, isMock: false };
+};
+
+export const getAllBenchmarks = async () => {
+  const response = await apiClient.get('/benchmarks');
+  return { data: response.data?.data ?? response.data, isMock: false };
+};
+
+export const getDatasetInfo = async (dataset = 'isot') => {
+  const response = await apiClient.get(`/dataset/${dataset}`);
+  return { data: response.data?.data ?? response.data, isMock: false };
+};
+
+export const getFigures = async (dataset = 'isot') => {
+  const response = await apiClient.get(`/figures/${dataset}`);
+  return { data: response.data?.data ?? response.data, isMock: false };
+};

@@ -1,8 +1,10 @@
 import express from 'express';
 import {
+  getAllBenchmarks,
   getDatasetInfo,
   getBenchmarks,
   getModels,
+  getFigures,
   getAnalytics,
   getArchive,
   predict
@@ -23,9 +25,11 @@ const validateDataset = (req, res, next) => {
   next();
 };
 
+router.get('/benchmarks', getAllBenchmarks);
 router.get('/dataset/:dataset', validateDataset, getDatasetInfo);
 router.get('/benchmarks/:dataset', validateDataset, getBenchmarks);
 router.get('/models/:dataset', validateDataset, getModels);
+router.get('/figures/:dataset', validateDataset, getFigures);
 router.get('/analytics/:dataset', validateDataset, getAnalytics);
 router.get('/archive/:dataset', validateDataset, getArchive);
 router.post('/predict', validateDataset, predict);

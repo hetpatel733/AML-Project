@@ -21,7 +21,7 @@ export const predictWithML = async (payload) => {
     return response.data;
   } catch (error) {
     console.error("[ML Service] Error calling Python ML service:", error.message);
-    throw new Error("Failed to get prediction from ML service");
+    throw error;
   }
 };
 
@@ -31,7 +31,7 @@ export const predictSimulationWithML = async (payload) => {
     return response.data;
   } catch (error) {
     console.error("[ML Service] Error calling Python ML simulation service:", error.message);
-    throw new Error("Failed to get simulation from ML service");
+    throw error;
   }
 };
 

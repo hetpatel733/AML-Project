@@ -61,13 +61,13 @@ export const CrossValidationChart = ({ cvData = {}, height = 340 }) => {
       let std;
 
       if (selectedMetric === 'f1') {
-        mean = cvMean.f1 ?? cv.f1_mean ?? cv.f1 ?? item.cv_f1_mean;
+        mean = cvMean.f1 ?? cv.f1_mean ?? cv.f1 ?? item.cv_f1_mean ?? item.metrics?.f1 ?? item.f1;
         std = cvStd.f1 ?? cv.f1_std ?? item.cv_f1_std;
       } else if (selectedMetric === 'accuracy') {
-        mean = cvMean.accuracy ?? cv.accuracy_mean ?? cv.accuracy ?? item.cv_accuracy_mean;
+        mean = cvMean.accuracy ?? cv.accuracy_mean ?? cv.accuracy ?? item.cv_accuracy_mean ?? item.metrics?.accuracy ?? item.accuracy;
         std = cvStd.accuracy ?? cv.accuracy_std ?? item.cv_accuracy_std;
       } else if (selectedMetric === 'roc_auc') {
-        mean = cvMean.rocAuc ?? cvMean.roc_auc ?? cv.roc_auc_mean ?? cv.roc_auc ?? item.cv_roc_auc_mean;
+        mean = cvMean.rocAuc ?? cvMean.roc_auc ?? cv.roc_auc_mean ?? cv.roc_auc ?? item.cv_roc_auc_mean ?? item.metrics?.rocAuc ?? item.metrics?.roc_auc ?? item.rocAuc ?? item.roc_auc;
         std = cvStd.rocAuc ?? cvStd.roc_auc ?? cv.roc_auc_std ?? item.cv_roc_auc_std;
       }
 
@@ -77,12 +77,13 @@ export const CrossValidationChart = ({ cvData = {}, height = 340 }) => {
       const fullName = item.name || item.model_name || key;
       const name = fullName
         .replace('Multinomial Naive Bayes', 'MNB')
+        .replace('Decision Tree', 'DT')
         .replace('Passive Aggressive Classifier', 'PAC')
         .replace('Passive Aggressive', 'PAC')
         .replace('Logistic Regression', 'LogReg')
         .replace('Random Forest', 'RF')
         .replace('Support Vector Machine', 'SVM')
-        .replace('Linear SVM', 'SVM');
+        .replace('Linear SVM', 'Linear SVM');
 
       return {
         key,

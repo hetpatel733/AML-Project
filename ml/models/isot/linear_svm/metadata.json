@@ -1,0 +1,103 @@
+{
+  "dataset": "isot",
+  "model": "linear_svm",
+  "name": "Linear Support Vector Machine",
+  "training_time_seconds": 22.97089320000032,
+  "parameters": {
+    "C": 1.0,
+    "class_weight": null,
+    "dual": "auto",
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "loss": "squared_hinge",
+    "max_iter": 1000,
+    "multi_class": "ovr",
+    "penalty": "l2",
+    "random_state": 42,
+    "tol": 0.0001,
+    "verbose": 0
+  },
+  "tfidf": {
+    "ngram_range": [
+      1,
+      2
+    ],
+    "sublinear_tf": true,
+    "min_df": 2,
+    "max_df": 0.98,
+    "max_features": 10000
+  },
+  "preprocessing": [
+    "HTML entity decoding",
+    "lowercase conversion",
+    "URL and HTML tag removal",
+    "contraction expansion for negation retention",
+    "non-alphabetic character cleaning",
+    "whitespace normalization",
+    "negation-preserving English stopword filtering",
+    "WordNet lemmatization"
+  ],
+  "train_count": 31280,
+  "test_count": 7820,
+  "metrics": {
+    "accuracy": 0.9975703324808184,
+    "precision": 0.9964705882352941,
+    "recall": 0.9990563812219864,
+    "f1": 0.9977618094004005,
+    "roc_auc": 0.9999092876949648,
+    "rocAuc": 0.9999092876949648,
+    "confusion_matrix": [
+      [
+        3566,
+        15
+      ],
+      [
+        4,
+        4235
+      ]
+    ],
+    "tn": 3566,
+    "fp": 15,
+    "fn": 4,
+    "tp": 4235
+  },
+  "crossValidation": {
+    "folds": 5,
+    "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+    "mean": {
+      "accuracy": 0.9962276214833761,
+      "f1": 0.9965252608104972,
+      "precision": 0.9951782076181812,
+      "recall": 0.9978769759574456
+    },
+    "std": {
+      "accuracy": 0.0007119903277276345,
+      "f1": 0.0006571587033844273,
+      "precision": 0.0007536563794339203,
+      "recall": 0.001140732682346163
+    },
+    "scores": {
+      "accuracy": [
+        0.9955242966751918,
+        0.9953644501278772,
+        0.9966432225063938,
+        0.9972826086956522,
+        0.9963235294117647
+      ],
+      "f1": [
+        0.9958714243585963,
+        0.9957321559970567,
+        0.9969104016477858,
+        0.9974981604120677,
+        0.9966141616369792
+      ]
+    }
+  },
+  "paperReference": {
+    "accuracy": 0.99373,
+    "source": "Paper Baseline Replication",
+    "delta": 0.003840332480818387,
+    "percentageGain": "+0.39%",
+    "improved": true
+  }
+}

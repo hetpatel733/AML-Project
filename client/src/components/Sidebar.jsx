@@ -27,7 +27,7 @@ export const Sidebar = () => {
     {
       heading: 'ACADEMIC RESOURCES',
       items: [
-        { path: '/experiments', label: 'Benchmark Matrix', icon: BookOpen, badge: 'CV-5' },
+        { path: '/experiments', label: 'Benchmark Matrix', icon: BookOpen, badge: '80/20' },
         { path: '/about', label: 'NLP Architecture', icon: Info },
       ]
     }
@@ -70,7 +70,7 @@ export const Sidebar = () => {
             <span className="sidebar-card-title">NLP Pipeline</span>
           </div>
           <p className="sidebar-card-desc">
-            TF-IDF vectorization with Passive Aggressive & Logistic Regression models.
+            TF-IDF (1,2-grams) with 5 classical supervised ML classifiers.
           </p>
           <div className="sidebar-api-status">
             <span className="status-dot"></span>

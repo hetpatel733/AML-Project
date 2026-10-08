@@ -1,0 +1,104 @@
+{
+  "dataset": "isot",
+  "model": "decision_tree",
+  "name": "Decision Tree",
+  "training_time_seconds": 42.75743880000027,
+  "parameters": {
+    "ccp_alpha": 0.0,
+    "class_weight": null,
+    "criterion": "gini",
+    "max_depth": null,
+    "max_features": null,
+    "max_leaf_nodes": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 1,
+    "min_samples_split": 2,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "random_state": 42,
+    "splitter": "best"
+  },
+  "tfidf": {
+    "ngram_range": [
+      1,
+      2
+    ],
+    "sublinear_tf": true,
+    "min_df": 2,
+    "max_df": 0.98,
+    "max_features": 10000
+  },
+  "preprocessing": [
+    "HTML entity decoding",
+    "lowercase conversion",
+    "URL and HTML tag removal",
+    "contraction expansion for negation retention",
+    "non-alphabetic character cleaning",
+    "whitespace normalization",
+    "negation-preserving English stopword filtering",
+    "WordNet lemmatization"
+  ],
+  "train_count": 31280,
+  "test_count": 7820,
+  "metrics": {
+    "accuracy": 0.9956521739130435,
+    "precision": 0.9959896201934418,
+    "recall": 0.9959896201934418,
+    "f1": 0.9959896201934418,
+    "roc_auc": 0.9956211714482986,
+    "rocAuc": 0.9956211714482986,
+    "confusion_matrix": [
+      [
+        3564,
+        17
+      ],
+      [
+        17,
+        4222
+      ]
+    ],
+    "tn": 3564,
+    "fp": 17,
+    "fn": 17,
+    "tp": 4222
+  },
+  "crossValidation": {
+    "folds": 5,
+    "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+    "mean": {
+      "accuracy": 0.9948209718670078,
+      "f1": 0.995221941786442,
+      "precision": 0.9955753712770598,
+      "recall": 0.9948696918313182
+    },
+    "std": {
+      "accuracy": 0.0003992965472121704,
+      "f1": 0.00036656065750579237,
+      "precision": 0.0009646534959097758,
+      "recall": 0.0005139059193504768
+    },
+    "scores": {
+      "accuracy": [
+        0.9950447570332481,
+        0.9940856777493606,
+        0.9947250639386189,
+        0.9952046035805626,
+        0.9950447570332481
+      ],
+      "f1": [
+        0.9954284028904291,
+        0.9945451864956509,
+        0.9951377633711507,
+        0.995571302037201,
+        0.9954270541377784
+      ]
+    }
+  },
+  "paperReference": {
+    "accuracy": 0.99437,
+    "source": "Paper Baseline Replication",
+    "delta": 0.0012821739130435272,
+    "percentageGain": "+0.13%",
+    "improved": true
+  }
+}

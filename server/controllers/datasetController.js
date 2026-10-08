@@ -7,7 +7,13 @@ import { predictWithML } from '../services/mlService.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const getBenchmarkPath = (dataset) => path.resolve(__dirname, `../../ml/results/${dataset}/benchmark.json`);
+const getBenchmarkPath = (dataset) => {
+  const primary = path.resolve(__dirname, `../../ml/results/${dataset}/benchmark.json`);
+  if (fs.existsSync(primary)) return primary;
+  const fallback = path.resolve(process.cwd(), `ml/results/${dataset}/benchmark.json`);
+  if (fs.existsSync(fallback)) return fallback;
+  return primary;
+};
 
 const loadBenchmark = (dataset) => {
   const benchmarkPath = getBenchmarkPath(dataset);
@@ -15,8 +21,25 @@ const loadBenchmark = (dataset) => {
   return JSON.parse(fs.readFileSync(benchmarkPath, 'utf8'));
 };
 
+export const getAllBenchmarks = async (req, res) => {
+  try {
+    const isot = loadBenchmark('isot');
+    const liar = loadBenchmark('liar');
+    return res.json({
+      success: true,
+      data: {
+        isot,
+        liar,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
 export const getDatasetInfo = async (req, res) => {
-  const { dataset } = req;
+  const dataset = req.dataset || req.params.dataset || 'isot';
   try {
     const benchmark = loadBenchmark(dataset);
     if (benchmark) {
@@ -45,7 +68,7 @@ export const getDatasetInfo = async (req, res) => {
 };
 
 export const getBenchmarks = async (req, res) => {
-  const { dataset } = req;
+  const dataset = req.dataset || req.params.dataset || 'isot';
   try {
     const benchmark = loadBenchmark(dataset);
     if (benchmark) {
@@ -58,13 +81,54 @@ export const getBenchmarks = async (req, res) => {
 };
 
 export const getModels = async (req, res) => {
-  const { dataset } = req;
+  const dataset = req.dataset || req.params.dataset || 'isot';
   try {
     const benchmark = loadBenchmark(dataset);
     if (benchmark) {
       return res.json({ success: true, data: benchmark.models || [] });
     }
     return res.status(404).json({ success: false, error: 'Training not completed. Models not available.' });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+export const getFigures = async (req, res) => {
+  const dataset = req.dataset || req.params.dataset || 'isot';
+  try {
+    const figuresDir = path.resolve(__dirname, `../../ml/results/figures/${dataset}`);
+    const comparisonsDir = path.resolve(__dirname, `../../ml/results/figures/comparisons`);
+    
+    let datasetFigures = [];
+    if (fs.existsSync(figuresDir)) {
+      datasetFigures = fs.readdirSync(figuresDir)
+        .filter(file => file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.svg'))
+        .map(file => ({
+          filename: file,
+          url: `/api/figures/${dataset}/${file}`,
+          name: file.replace('.png', '').replace(/_/g, ' ')
+        }));
+    }
+
+    let comparisonFigures = [];
+    if (fs.existsSync(comparisonsDir)) {
+      comparisonFigures = fs.readdirSync(comparisonsDir)
+        .filter(file => file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.svg'))
+        .map(file => ({
+          filename: file,
+          url: `/api/figures/comparisons/${file}`,
+          name: file.replace('.png', '').replace(/_/g, ' ')
+        }));
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        dataset,
+        figures: datasetFigures,
+        comparisonFigures
+      }
+    });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }

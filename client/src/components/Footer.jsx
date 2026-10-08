@@ -40,7 +40,7 @@ export const Footer = () => {
             <h4 className="footer-heading">Research & Method</h4>
             <ul className="footer-links">
               <li><Link to="/about#tf-idf">TF-IDF Vectorization</Link></li>
-              <li><Link to="/about#models">Passive-Aggressive Model</Link></li>
+              <li><Link to="/about#models">5 Supervised ML Classifiers</Link></li>
               <li><Link to="/about#pipeline">NLP Preprocessing Pipeline</Link></li>
               <li><Link to="/about#evaluation">Confusion Matrix & Metrics</Link></li>
             </ul>

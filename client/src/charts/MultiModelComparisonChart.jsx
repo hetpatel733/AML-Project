@@ -27,14 +27,20 @@ export const MultiModelComparisonChart = ({ models = [], ensembles = null, heigh
       .append('g')
       .attr('transform', `translate(${margin.left}, ${margin.top})`);
 
-    // Prepare combined data list: 4 trained models + 2 ensembles
+    // Prepare combined data list: candidate models + ensembles
     const items = [];
     
     if (models && models.length > 0) {
       models.forEach(m => {
         items.push({
           id: m.model_id,
-          name: m.model_name.replace('Multinomial Naive Bayes', 'MNB').replace('Passive Aggressive', 'PAC').replace('Logistic Regression', 'LogReg'),
+          name: (m.model_name || m.model_id || '')
+            .replace('Multinomial Naive Bayes', 'MNB')
+            .replace('Decision Tree', 'DT')
+            .replace('Passive Aggressive', 'PAC')
+            .replace('Logistic Regression', 'LogReg')
+            .replace('Random Forest', 'RF')
+            .replace('Linear SVM', 'Linear SVM'),
           fullName: m.model_name,
           realProb: m.probabilities?.REAL ?? (m.prediction === 'REAL' ? m.confidence : 1 - m.confidence),
           fakeProb: m.probabilities?.FAKE ?? (m.prediction === 'FAKE' ? m.confidence : 1 - m.confidence),

@@ -141,3 +141,37 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Data & Dataset files (large CSVs, TSVs, raw corpora, and embeddings)
+*.csv
+*.tsv
+*.xlsx
+*.parquet
+*.feather
+*.h5
+*.hdf5
+ml/data/
+**/data/**/*.csv
+**/data/**/*.tsv
+**/data/*.txt
+**/data/*.csv
+**/data/*.tsv
+**/data/*.zip
+**/data/*.tar.gz
+**/data/*.gz
+glove*.txt
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+.pytest_cache/
+.coverage
+htmlcov/
+

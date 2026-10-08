@@ -146,7 +146,7 @@ export const About = () => {
               <Cpu size={20} />
             </div>
             <div>
-              <h3 className="card-title">4. Supervised Classification Algorithms Evaluated</h3>
+              <h3 className="card-title">Supervised Classification Algorithms Evaluated</h3>
               <p className="card-subtitle">Empirical performance comparison of standard classifiers</p>
             </div>
           </div>
@@ -156,22 +156,22 @@ export const About = () => {
             {/* Model 1 */}
             <div className="model-detail-card">
               <div className="model-card-top">
-                <span className="model-name-large">Passive Aggressive Classifier</span>
-                <span className="model-accuracy-badge font-mono">94.8% Acc</span>
+                <span className="model-name-large">Logistic Regression</span>
+                <span className="model-accuracy-badge font-mono">C=1.0</span>
               </div>
               <p className="model-detail-desc">
-                An online learning algorithm for large-scale text classification. It remains <em>passive</em> when predictions are correct within margin and updates aggressively when errors occur, making it ideal for streaming textual datasets.
+                A probabilistic linear classifier utilizing the standard Sigmoid activation &sigma;(z) = 1 / (1 + e<sup>-z</sup>) to yield calibrated confidence probabilities between 0 and 1.
               </p>
             </div>
 
             {/* Model 2 */}
             <div className="model-detail-card">
               <div className="model-card-top">
-                <span className="model-name-large">Logistic Regression</span>
-                <span className="model-accuracy-badge font-mono">93.6% Acc</span>
+                <span className="model-name-large">Multinomial Naive Bayes</span>
+                <span className="model-accuracy-badge font-mono">&alpha;=1.0</span>
               </div>
               <p className="model-detail-desc">
-                A probabilistic linear classifier utilizing the standard Sigmoid activation &sigma;(z) = 1 / (1 + e<sup>-z</sup>) to yield calibrated confidence probabilities between 0 and 1.
+                Applies Bayes' theorem under the assumption of conditional word feature independence, providing lightning-fast computation and strong baseline metrics.
               </p>
             </div>
 
@@ -179,21 +179,32 @@ export const About = () => {
             <div className="model-detail-card">
               <div className="model-card-top">
                 <span className="model-name-large">Linear Support Vector Machine</span>
-                <span className="model-accuracy-badge font-mono">94.1% Acc</span>
+                <span className="model-accuracy-badge font-mono">C=1.0, Linear</span>
               </div>
               <p className="model-detail-desc">
-                Optimizes a maximum-margin hyperplane in high-dimensional sparse vector space, effectively separating truthful from deceptive lexical clusters.
+                Optimizes a maximum-margin hyperplane in high-dimensional sparse TF-IDF vector space, effectively separating truthful from deceptive lexical clusters.
               </p>
             </div>
 
             {/* Model 4 */}
             <div className="model-detail-card">
               <div className="model-card-top">
-                <span className="model-name-large">Multinomial Naive Bayes</span>
-                <span className="model-accuracy-badge font-mono">89.4% Acc</span>
+                <span className="model-name-large">Decision Tree</span>
+                <span className="model-accuracy-badge font-mono">Gini Impurity</span>
               </div>
               <p className="model-detail-desc">
-                Applies Bayes' theorem under the assumption of conditional word feature independence, providing lightning-fast computation and strong baseline metrics.
+                Non-parametric rule-based partitioning classifier that splits the TF-IDF feature space based on information gain and Gini impurity metrics.
+              </p>
+            </div>
+
+            {/* Model 5 */}
+            <div className="model-detail-card">
+              <div className="model-card-top">
+                <span className="model-name-large">Random Forest</span>
+                <span className="model-accuracy-badge font-mono">100 Trees</span>
+              </div>
+              <p className="model-detail-desc">
+                Ensemble meta-estimator that fits a multitude of randomized decision trees on sub-samples and uses majority voting to control overfitting and deliver peak accuracy.
               </p>
             </div>
           </div>
@@ -208,7 +219,7 @@ export const About = () => {
               <GitBranch size={20} />
             </div>
             <div>
-              <h3 className="card-title">5. System Architecture &amp; Future Backend Communication</h3>
+              <h3 className="card-title">System Architecture &amp; Backend Communication</h3>
               <p className="card-subtitle">Seamless integration blueprint between React UI and Python ML services</p>
             </div>
           </div>

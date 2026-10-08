@@ -1,0 +1,95 @@
+{
+  "dataset": "liar",
+  "model": "multinomial_nb",
+  "name": "Multinomial Naive Bayes",
+  "training_time_seconds": 0.43281370000022434,
+  "parameters": {
+    "alpha": 1.0,
+    "class_prior": null,
+    "fit_prior": true,
+    "force_alpha": true
+  },
+  "tfidf": {
+    "ngram_range": [
+      1,
+      2
+    ],
+    "sublinear_tf": true,
+    "min_df": 2,
+    "max_df": 0.98,
+    "max_features": 10000
+  },
+  "preprocessing": [
+    "HTML entity decoding",
+    "lowercase conversion",
+    "URL and HTML tag removal",
+    "contraction expansion for negation retention",
+    "non-alphabetic character cleaning",
+    "whitespace normalization",
+    "negation-preserving English stopword filtering",
+    "WordNet lemmatization"
+  ],
+  "train_count": 10232,
+  "test_count": 2559,
+  "metrics": {
+    "accuracy": 0.6088315748339195,
+    "precision": 0.6160130718954249,
+    "recall": 0.7925718290119131,
+    "f1": 0.6932270916334662,
+    "roc_auc": 0.6432952572918549,
+    "rocAuc": 0.6432952572918549,
+    "confusion_matrix": [
+      [
+        427,
+        705
+      ],
+      [
+        296,
+        1131
+      ]
+    ],
+    "tn": 427,
+    "fp": 705,
+    "fn": 296,
+    "tp": 1131
+  },
+  "crossValidation": {
+    "folds": 5,
+    "strategy": "StratifiedKFold(n_splits=5, shuffle=True, random_state=42) on 80% train partition only",
+    "mean": {
+      "accuracy": 0.6128822142027934,
+      "f1": 0.6932892672832816,
+      "precision": 0.6212336055151522,
+      "recall": 0.7843011092675335
+    },
+    "std": {
+      "accuracy": 0.010979658739469933,
+      "f1": 0.0071983866443235565,
+      "precision": 0.008883634868681808,
+      "recall": 0.0053387113496750896
+    },
+    "scores": {
+      "accuracy": [
+        0.6072300928187592,
+        0.6077186126038104,
+        0.6197458455522972,
+        0.6304985337243402,
+        0.5992179863147605
+      ],
+      "f1": [
+        0.6893353941267388,
+        0.6896018554310012,
+        0.6963309914129586,
+        0.7058365758754864,
+        0.6853415195702226
+      ]
+    }
+  },
+  "paperReference": {
+    "accuracy": 0.60688,
+    "source": "Paper Baseline Replication",
+    "delta": 0.0019515748339195005,
+    "percentageGain": "+0.32%",
+    "improved": true
+  }
+}

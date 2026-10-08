@@ -34,7 +34,6 @@ import {
 } from 'lucide-react';
 import { runSimulation, submitPredictionFeedback } from '../services/api';
 import MultiModelComparisonChart from '../charts/MultiModelComparisonChart';
-import GeminiInsights from '../components/GeminiInsights';
 
 import { useDataset } from '../context/DatasetContext';
 
@@ -141,8 +140,9 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
     if (name.includes('logistic')) return 'Logistic Regression';
     if (name.includes('svm') || name.includes('support')) return 'Support Vector Machine';
     if (name.includes('naive') || name.includes('bayes')) return 'Naive Bayes';
-    if (name.includes('passive') || name.includes('aggressive') || name.includes('pac')) return 'Passive Aggressive';
+    if (name.includes('tree') || name.includes('decision')) return 'Decision Tree';
     if (name.includes('forest') || name.includes('random')) return 'Random Forest';
+    if (name.includes('passive') || name.includes('aggressive') || name.includes('pac')) return 'Passive Aggressive';
     if (name.includes('cnn') || name.includes('bilstm') || name.includes('lstm')) return 'Deep Learning (CNN-BiLSTM)';
     return 'Classifier';
   };
@@ -233,7 +233,6 @@ const normalizeSimulationData = (data, inputTitle = '', inputText = '') => {
     candidate_models,
     ensembles,
     salient_features,
-    geminiInsights: raw.geminiInsights || null
   };
 };
 
@@ -491,7 +490,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                 </span>
               </div>
               <p style={{ margin: '4px 0 0', fontSize: '14px', color: '#94a3b8' }}>
-                Test articles against 4 trained classifiers with ensemble consensus voting.
+                Test articles against 5 trained classifiers with consensus voting.
               </p>
             </div>
           </div>
@@ -670,7 +669,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
             {loading ? (
               <>
                 <div className="spinner-border spinner-border-sm" role="status"></div>
-                <span>Executing 4-Model Vectorization & Simulation Pipeline...</span>
+                <span>Executing 5-Model Vectorization & Simulation Pipeline...</span>
               </>
             ) : (
               <>
@@ -854,48 +853,6 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                 </div>
               </div>
 
-              {/* Compact Highlighted Gemini Score / Status */}
-              {simulationResult.geminiInsights && (
-                <div className="stat-box" style={{
-                  padding: '14px',
-                  borderRadius: '8px',
-                  background: simulationResult.geminiInsights.enabled
-                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(168, 85, 247, 0.15))'
-                    : 'rgba(15, 23, 42, 0.6)',
-                  border: simulationResult.geminiInsights.enabled
-                    ? '1.5px solid rgba(139, 92, 246, 0.6)'
-                    : '1px solid rgba(255, 255, 255, 0.06)',
-                  boxShadow: simulationResult.geminiInsights.enabled
-                    ? '0 0 15px rgba(139, 92, 246, 0.25)'
-                    : 'none'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 700, color: '#c084fc', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Sparkles size={13} /> Gemini AI Analysis
-                    </div>
-                    {simulationResult.geminiInsights.credibilityScore !== null && simulationResult.geminiInsights.credibilityScore !== undefined && (
-                      <span style={{
-                        fontSize: '10px',
-                        padding: '1px 6px',
-                        borderRadius: '4px',
-                        fontWeight: 700,
-                        background: simulationResult.geminiInsights.credibilityScore >= 75 ? 'rgba(16, 185, 129, 0.2)' : simulationResult.geminiInsights.credibilityScore >= 50 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)',
-                        color: simulationResult.geminiInsights.credibilityScore >= 75 ? '#34d399' : simulationResult.geminiInsights.credibilityScore >= 50 ? '#fbbf24' : '#f87171'
-                      }}>
-                        Score: {simulationResult.geminiInsights.credibilityScore}/100
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '13px', fontWeight: 600, color: '#f8fafc', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {simulationResult.geminiInsights.enabled
-                      ? (simulationResult.geminiInsights.sentiment || simulationResult.geminiInsights.summary || 'Real-time AI Verification Complete')
-                      : (simulationResult.geminiInsights.message || 'Gemini API not configured')}
-                  </div>
-                  <div style={{ fontSize: '11px', color: '#cbd5e1', marginTop: '2px' }}>
-                    {simulationResult.geminiInsights.enabled ? 'Live multimodal fact-check' : 'Add GEMINI_API_KEY in .env'}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -983,7 +940,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
             </div>
           </div>
 
-          {/* STEP 4: Parallel 4 Candidate Models */}
+          {/* STEP 4: Parallel 5 Candidate Models */}
           <div className="card" style={{ marginBottom: '24px', background: 'rgba(20, 30, 51, 0.8)' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -992,10 +949,10 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                 </span>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#f8fafc' }}>
-                    Parallel 4 Candidate Models (Inference & Split Benchmark)
+                    Parallel 5 Candidate Models (Inference & Split Benchmark)
                   </h3>
                   <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                    Academic distinction: Live article inference vs 15% hold-out test set benchmark.
+                    Academic distinction: Live article inference vs 20% hold-out test set benchmark.
                   </span>
                 </div>
               </div>
@@ -1158,7 +1115,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                       color: '#94a3b8'
                     }}>
                       <div style={{ fontWeight: 600, color: '#cbd5e1', marginBottom: '6px', display: 'flex', justifyContent: 'space-between' }}>
-                        <span>Hold-Out Test Split Metrics (15%):</span>
+                        <span>Hold-Out Test Split Metrics (20%):</span>
                           <span style={{ color: '#60a5fa' }}>ROC-AUC: {model.test_dataset_metrics ? `${(model.test_dataset_metrics.roc_auc * 100).toFixed(1)}%` : 'N/A'}</span>
                       </div>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '6px', textAlign: 'center' }}>
@@ -1284,7 +1241,7 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
                   </div>
 
                   <p style={{ fontSize: '12px', color: '#cbd5e1', marginBottom: '14px', fontStyle: 'italic' }}>
-                    Unweighted discrete vote mode across all 4 trained models: Consensus = (max(N_REAL, N_FAKE) / 4) &times; 100%
+                    Unweighted discrete vote mode across all 5 trained models: Consensus = (max(N_REAL, N_FAKE) / 5) &times; 100%
                   </p>
 
                   <div style={{
@@ -1395,50 +1352,11 @@ ${res.salient_features.map(f => `- **${f.term}** (TF-IDF: ${f.tfidf_weight}, Ass
             </div>
           )}
 
-          {/* STEP 8: Real-Time Gemini AI Credibility & Fact-Check Analysis */}
-          {simulationResult.geminiInsights && (
-            <div className="card" style={{
-              marginBottom: '24px',
-              background: 'linear-gradient(135deg, rgba(26, 21, 53, 0.9), rgba(15, 23, 42, 0.9))',
-              border: '1.5px solid rgba(168, 85, 247, 0.45)',
-              boxShadow: '0 8px 25px rgba(168, 85, 247, 0.15)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-                <span style={{
-                  background: 'linear-gradient(135deg, #a855f7, #6366f1)',
-                  color: '#fff',
-                  borderRadius: '50%',
-                  width: '26px',
-                  height: '26px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  boxShadow: '0 0 10px rgba(168, 85, 247, 0.5)'
-                }}>
-                  8
-                </span>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Sparkles size={18} style={{ color: '#c084fc' }} />
-                    Gemini AI Real-Time Credibility Analysis
-                  </h3>
-                  <span style={{ fontSize: '12px', color: '#cbd5e1' }}>
-                    Google Gemini generative multimodal reasoning, claim verification, and factual anomaly detection.
-                  </span>
-                </div>
-              </div>
-
-              <GeminiInsights insights={simulationResult.geminiInsights} />
-            </div>
-          )}
-
-          {/* STEP 9: Human-in-the-Loop Feedback & Calibration */}
+          {/* STEP 8: Human-in-the-Loop Feedback & Calibration */}
           <div className="card" style={{ marginBottom: '24px', background: 'rgba(20, 30, 51, 0.8)', border: '1px solid rgba(139, 92, 246, 0.35)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
               <span style={{ background: '#8b5cf6', color: '#fff', borderRadius: '50%', width: '26px', height: '26px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700 }}>
-                {simulationResult.geminiInsights ? '9' : '8'}
+                8
               </span>
               <div>
                 <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 700, color: '#f8fafc' }}>

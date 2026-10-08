@@ -80,7 +80,7 @@ export const Analytics = () => {
         <div className="page-header-content">
           <div className="page-badge">
             <BarChart3 size={14} />
-            <span>Performance Analysis</span>
+            <span>Performance Analysis &bull; {selectedDataset.toUpperCase()} Dataset</span>
           </div>
           <h1 className="page-title">Analytics</h1>
           <p className="page-subtitle">
