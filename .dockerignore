@@ -1,26 +1,44 @@
-# Git
+# ==========================================
+# Git & CI/CD
+# ==========================================
 .git
 .gitignore
+.gitattributes
 .github
+.dockerignore
 
-# Environment & Local Secrets
+# ==========================================
+# Environment Variables & Secrets
+# ==========================================
+.env
+.env.*
 .env.local
 .env.development
 .env.production
+!.env.example
 
-# Dependencies & Package Managers
+# ==========================================
+# Dependencies & Package Manager Caches
+# ==========================================
 **/node_modules/
 node_modules/
-.npm
+.npm/
+.pnpm-store/
+.yarn/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
-# Python Environments & Cache
+# ==========================================
+# Python Virtual Environments, Bytecode & Caches
+# ==========================================
 **/.venv/
 .venv/
 **/venv/
 venv/
+**/env/
+env/
 **/__pycache__/
 __pycache__/
 **/*.pyc
@@ -29,26 +47,89 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+.tox/
+.nox/
 .mypy_cache/
+.ruff_cache/
 
-# Frontend Build Output (will be built freshly in Docker builder stage)
+# ==========================================
+# Datasets, Raw Corpus & Word Embeddings
+# ==========================================
+ml/data/
+**/data/
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.jsonl
+glove*.txt
+glove*
+*.embeddings
+*.h5
+*.hdf5
+ml/results/**/predictions/
+ml/results/**/*.csv
+
+# ==========================================
+# Jupyter Notebooks & Data Exploration
+# ==========================================
+ml/notebooks/
+*.ipynb
+**/.ipynb_checkpoints/
+
+# ==========================================
+# Frontend Build Outputs & Caches
+# ==========================================
 client/dist/
 dist/
+out/
+build/
+.output/
 .vite/
 client/.vite/
+.parcel-cache/
+.next/
+.nuxt/
+.cache/
 
-# ML training data and notebooks are not needed in the runtime image
-ml/data/
-ml/notebooks/
+# ==========================================
+# Tests, Documentation & Temp Files
+# ==========================================
+server/test-db.js
+*.test.js
+*.spec.js
+**/__tests__/
+*.md
+!ml/README.md
+*.tmp
+*.log
+logs/
+pids/
+*.pid
+*.seed
+*.pid.lock
 
-# IDE & OS Metadata
+# ==========================================
+# Archives & Compressed Files
+# ==========================================
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# ==========================================
+# IDE & Operating System Files
+# ==========================================
 .vscode/
 .idea/
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-*.tmp
-*.log
-
-# Large temporary datasets/checkpoints if any
-*.tar.gz
-*.zip
+Desktop.ini
+*.sublime-project
+*.sublime-workspace
